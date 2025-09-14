@@ -68,13 +68,17 @@ export default function App() {
 
       const processor = audioContextRef.current.createScriptProcessor(4096, 1, 1);
       let isSpeech = false;
+      let speechFrameCount = 0; // Count consecutive speech detections
+      let silenceFrameCount = 0; // Count consecutive silence detections
+      let probabilityBuffer = []; // Buffer to smooth probability scores
+      const bufferSize = 5; // Average over 5 recent predictions
 
       processor.onaudioprocess = async (e) => {
         const inputData = e.inputBuffer.getChannelData(0);
 
         if (modelRef.current && stateRef.current) {
           // Process with VAD if model is available
-          const chunkSize = 512;
+          const chunkSize = 512; // Model requirement - cannot change this
           for (let i = 0; i < inputData.length; i += chunkSize) {
             const chunk = inputData.slice(i, i + chunkSize);
             if (chunk.length !== chunkSize) continue;
@@ -95,16 +99,48 @@ export default function App() {
                 stateRef.current = results.state;
               }
               
-              // Get speech probability
-              const prob = results.output ? results.output.data[0] : 0;
-              if (prob > 0.5 && !isSpeech) {
-                console.log('speech start');
-                setSpeaking(true);
-                isSpeech = true;
-              } else if (prob < 0.35 && isSpeech) {
-                console.log('speech end');
-                setSpeaking(false);
-                isSpeech = false;
+              // Get speech probability and smooth it
+              const rawProb = results.output ? results.output.data[0] : 0;
+              
+              // Add to probability buffer and keep only recent values
+              probabilityBuffer.push(rawProb);
+              if (probabilityBuffer.length > bufferSize) {
+                probabilityBuffer.shift();
+              }
+              
+              // Calculate smoothed probability (average of recent predictions)
+              const prob = probabilityBuffer.reduce((sum, p) => sum + p, 0) / probabilityBuffer.length;
+              
+              // Use hysteresis and debouncing for stable detection
+              const speechThreshold = 0.6;  // Higher threshold for speech start
+              const silenceThreshold = 0.1; // Much lower threshold for speech end (avoid breath cutoffs)
+              const requiredSpeechFrames = 3; // Require 3 consecutive detections for speech start
+              const requiredSilenceFrames = 5; // Require 5 consecutive detections for speech end
+              
+              if (prob > speechThreshold) {
+                speechFrameCount++;
+                silenceFrameCount = 0;
+                
+                // Trigger speech start after consecutive detections
+                if (!isSpeech && speechFrameCount >= requiredSpeechFrames) {
+                  console.log('speech start');
+                  setSpeaking(true);
+                  isSpeech = true;
+                }
+              } else if (prob < silenceThreshold) {
+                silenceFrameCount++;
+                speechFrameCount = 0;
+                
+                // Trigger speech end after consecutive silence detections
+                if (isSpeech && silenceFrameCount >= requiredSilenceFrames) {
+                  console.log('speech end');
+                  setSpeaking(false);
+                  isSpeech = false;
+                }
+              } else {
+                // In between thresholds - maintain current state but reset counters
+                speechFrameCount = 0;
+                silenceFrameCount = 0;
               }
             } catch (e) {
               setError(`VAD processing error: ${e.message}`);
