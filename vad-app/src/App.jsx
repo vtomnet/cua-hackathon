@@ -9,15 +9,94 @@ ort.env.wasm.wasmPaths = {
 ort.env.wasm.numThreads = 1; // Disable threading to avoid issues
 ort.env.logLevel = 'verbose'; // Enable verbose logging
 
+// WAV conversion utility
+function convertToWAV(audioBuffer, sampleRate = 16000) {
+  const length = audioBuffer.length;
+  const arrayBuffer = new ArrayBuffer(44 + length * 2);
+  const view = new DataView(arrayBuffer);
+
+  // WAV header
+  const writeString = (offset, string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  };
+
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + length * 2, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, length * 2, true);
+
+  // Convert float32 to int16
+  let offset = 44;
+  for (let i = 0; i < length; i++) {
+    const sample = Math.max(-1, Math.min(1, audioBuffer[i]));
+    view.setInt16(offset, sample * 0x7FFF, true);
+    offset += 2;
+  }
+
+  return new Blob([arrayBuffer], { type: 'audio/wav' });
+}
+
 export default function App() {
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [recording, setRecording] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
+  const [recordedSegments, setRecordedSegments] = useState([]);
   const vadRef = useRef(null);
   const audioContextRef = useRef(null);
   const modelRef = useRef(null);
   const stateRef = useRef(null);
+  const recordingBufferRef = useRef([]);
+  const isRecordingRef = useRef(false);
+
+  // Upload WAV to server
+  const uploadWAV = async (wavBlob, metadata) => {
+    try {
+      setUploadStatus('Uploading...');
+      const formData = new FormData();
+      formData.append('audio', wavBlob, `speech_${Date.now()}.wav`);
+      formData.append('metadata', JSON.stringify(metadata));
+
+      // Replace with your server endpoint
+      const response = await fetch('/api/upload-audio', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setUploadStatus('Upload successful');
+        setRecordedSegments(prev => [...prev, {
+          id: Date.now(),
+          timestamp: new Date().toLocaleTimeString(),
+          duration: metadata.duration,
+          status: 'uploaded'
+        }]);
+        console.log('Upload successful:', result);
+      } else {
+        setUploadStatus('Upload failed');
+        console.error('Upload failed:', response.statusText);
+      }
+    } catch (error) {
+      setUploadStatus('Upload error');
+      console.error('Upload error:', error);
+    }
+    
+    setTimeout(() => setUploadStatus(''), 3000);
+  };
 
   const startListening = async () => {
     try {
@@ -75,6 +154,11 @@ export default function App() {
 
       processor.onaudioprocess = async (e) => {
         const inputData = e.inputBuffer.getChannelData(0);
+        
+        // Always collect audio data if we're in a recording session
+        if (isRecordingRef.current) {
+          recordingBufferRef.current.push(new Float32Array(inputData));
+        }
 
         if (modelRef.current && stateRef.current) {
           // Process with VAD if model is available
@@ -126,6 +210,12 @@ export default function App() {
                   console.log('speech start');
                   setSpeaking(true);
                   isSpeech = true;
+                  
+                  // Start recording
+                  isRecordingRef.current = true;
+                  recordingBufferRef.current = [];
+                  setRecording(true);
+                  console.log('Recording started');
                 }
               } else if (prob < silenceThreshold) {
                 silenceFrameCount++;
@@ -136,6 +226,38 @@ export default function App() {
                   console.log('speech end');
                   setSpeaking(false);
                   isSpeech = false;
+                  
+                  // Stop recording and process
+                  if (isRecordingRef.current) {
+                    isRecordingRef.current = false;
+                    setRecording(false);
+                    console.log('Recording stopped');
+                    
+                    // Convert recorded audio to WAV
+                    const recordedChunks = recordingBufferRef.current;
+                    if (recordedChunks.length > 0) {
+                      // Concatenate all audio chunks
+                      const totalLength = recordedChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+                      const concatenated = new Float32Array(totalLength);
+                      let offset = 0;
+                      
+                      for (const chunk of recordedChunks) {
+                        concatenated.set(chunk, offset);
+                        offset += chunk.length;
+                      }
+                      
+                      // Convert to WAV and upload
+                      const wavBlob = convertToWAV(concatenated, 16000);
+                      const metadata = {
+                        duration: totalLength / 16000,
+                        timestamp: new Date().toISOString(),
+                        sampleRate: 16000,
+                        channels: 1
+                      };
+                      
+                      uploadWAV(wavBlob, metadata);
+                    }
+                  }
                 }
               } else {
                 // In between thresholds - maintain current state but reset counters
@@ -203,6 +325,13 @@ export default function App() {
       {loading && (
         <p style={{ color: '#1976d2' }}>Loading VAD model...</p>
       )}
+      {uploadStatus && (
+        <p style={{ 
+          color: uploadStatus.includes('successful') ? 'green' : 
+                 uploadStatus.includes('Uploading') ? '#1976d2' : 'red',
+          marginBottom: '10px' 
+        }}>{uploadStatus}</p>
+      )}
 
       {!listening ? (
         <button 
@@ -245,9 +374,39 @@ export default function App() {
       <p style={{ fontSize: '18px', margin: '10px 0' }}>
         Voice: <strong>{speaking ? 'Speaking...' : 'Silent'}</strong>
       </p>
+      <p style={{ fontSize: '18px', margin: '10px 0' }}>
+        Recording: <strong style={{ color: recording ? 'red' : 'gray' }}>
+          {recording ? '🔴 Recording' : '⚫ Not Recording'}
+        </strong>
+      </p>
+
+      {recordedSegments.length > 0 && (
+        <div style={{ marginTop: '30px' }}>
+          <h3>Recorded Segments</h3>
+          <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px', borderRadius: '5px' }}>
+            {recordedSegments.map(segment => (
+              <div key={segment.id} style={{ 
+                marginBottom: '8px', 
+                padding: '5px', 
+                backgroundColor: '#f5f5f5', 
+                borderRadius: '3px',
+                fontSize: '14px'
+              }}>
+                <strong>{segment.timestamp}</strong> - 
+                Duration: {segment.duration.toFixed(1)}s - 
+                Status: <span style={{ color: segment.status === 'uploaded' ? 'green' : 'orange' }}>
+                  {segment.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <p style={{ fontSize: '14px', color: '#666', marginTop: '20px' }}>
         Check the browser console (F12) for speech start/end logs.
+        <br />
+        Speech segments are automatically recorded and uploaded as WAV files.
       </p>
     </div>
   );
