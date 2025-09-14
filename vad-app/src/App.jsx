@@ -196,10 +196,10 @@ export default function App() {
               const prob = probabilityBuffer.reduce((sum, p) => sum + p, 0) / probabilityBuffer.length;
               
               // Use hysteresis and debouncing for stable detection
-              const speechThreshold = 0.6;  // Higher threshold for speech start
+              const speechThreshold = 0.35;  // Higher threshold for speech start
               const silenceThreshold = 0.1; // Much lower threshold for speech end (avoid breath cutoffs)
-              const requiredSpeechFrames = 3; // Require 3 consecutive detections for speech start
-              const requiredSilenceFrames = 5; // Require 5 consecutive detections for speech end
+              const requiredSpeechFrames = 2; // Require 3 consecutive detections for speech start
+              const requiredSilenceFrames = 7; // Require 5 consecutive detections for speech end
               
               if (prob > speechThreshold) {
                 speechFrameCount++;
