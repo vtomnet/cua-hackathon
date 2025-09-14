@@ -71,7 +71,7 @@ export default function App() {
       formData.append('metadata', JSON.stringify(metadata));
 
       // Replace with your server endpoint
-      const response = await fetch('/api/upload-audio', {
+      const response = await fetch('http://localhost:8002/process', {
         method: 'POST',
         body: formData
       });
@@ -94,7 +94,7 @@ export default function App() {
       setUploadStatus('Upload error');
       console.error('Upload error:', error);
     }
-    
+
     setTimeout(() => setUploadStatus(''), 3000);
   };
 
@@ -115,7 +115,7 @@ export default function App() {
           try {
             modelRef.current = await ort.InferenceSession.create(
               modelUrl,
-              { 
+              {
                 executionProviders: ['cpu'], // Use CPU backend to avoid WASM issues
                 graphOptimizationLevel: 'disabled',
                 executionMode: 'sequential'
@@ -129,7 +129,7 @@ export default function App() {
             modelUrl = 'https://huggingface.co/onnx-community/silero-vad/resolve/main/onnx/model.onnx?download=true';
             modelRef.current = await ort.InferenceSession.create(
               modelUrl,
-              { 
+              {
                 executionProviders: ['cpu'], // Use CPU backend to avoid WASM issues
                 graphOptimizationLevel: 'disabled',
                 executionMode: 'sequential'
@@ -154,7 +154,7 @@ export default function App() {
 
       processor.onaudioprocess = async (e) => {
         const inputData = e.inputBuffer.getChannelData(0);
-        
+
         // Always collect audio data if we're in a recording session
         if (isRecordingRef.current) {
           recordingBufferRef.current.push(new Float32Array(inputData));
@@ -169,48 +169,48 @@ export default function App() {
             try {
               // Create input tensor with correct shape [1, chunkSize]
               const inputTensor = new ort.Tensor('float32', chunk, [1, chunkSize]);
-              
+
               // Run inference with input, state, and sample rate
-              const feeds = { 
-                input: inputTensor, 
+              const feeds = {
+                input: inputTensor,
                 state: stateRef.current,
                 sr: new ort.Tensor('int64', [16000], [1])
               };
               const results = await modelRef.current.run(feeds);
-              
+
               // Update state for next iteration
               if (results.state) {
                 stateRef.current = results.state;
               }
-              
+
               // Get speech probability and smooth it
               const rawProb = results.output ? results.output.data[0] : 0;
-              
+
               // Add to probability buffer and keep only recent values
               probabilityBuffer.push(rawProb);
               if (probabilityBuffer.length > bufferSize) {
                 probabilityBuffer.shift();
               }
-              
+
               // Calculate smoothed probability (average of recent predictions)
               const prob = probabilityBuffer.reduce((sum, p) => sum + p, 0) / probabilityBuffer.length;
-              
+
               // Use hysteresis and debouncing for stable detection
               const speechThreshold = 0.35;  // Higher threshold for speech start
               const silenceThreshold = 0.1; // Much lower threshold for speech end (avoid breath cutoffs)
               const requiredSpeechFrames = 2; // Require 3 consecutive detections for speech start
               const requiredSilenceFrames = 7; // Require 5 consecutive detections for speech end
-              
+
               if (prob > speechThreshold) {
                 speechFrameCount++;
                 silenceFrameCount = 0;
-                
+
                 // Trigger speech start after consecutive detections
                 if (!isSpeech && speechFrameCount >= requiredSpeechFrames) {
                   console.log('speech start');
                   setSpeaking(true);
                   isSpeech = true;
-                  
+
                   // Start recording
                   isRecordingRef.current = true;
                   recordingBufferRef.current = [];
@@ -220,19 +220,19 @@ export default function App() {
               } else if (prob < silenceThreshold) {
                 silenceFrameCount++;
                 speechFrameCount = 0;
-                
+
                 // Trigger speech end after consecutive silence detections
                 if (isSpeech && silenceFrameCount >= requiredSilenceFrames) {
                   console.log('speech end');
                   setSpeaking(false);
                   isSpeech = false;
-                  
+
                   // Stop recording and process
                   if (isRecordingRef.current) {
                     isRecordingRef.current = false;
                     setRecording(false);
                     console.log('Recording stopped');
-                    
+
                     // Convert recorded audio to WAV
                     const recordedChunks = recordingBufferRef.current;
                     if (recordedChunks.length > 0) {
@@ -240,12 +240,12 @@ export default function App() {
                       const totalLength = recordedChunks.reduce((sum, chunk) => sum + chunk.length, 0);
                       const concatenated = new Float32Array(totalLength);
                       let offset = 0;
-                      
+
                       for (const chunk of recordedChunks) {
                         concatenated.set(chunk, offset);
                         offset += chunk.length;
                       }
-                      
+
                       // Convert to WAV and upload
                       const wavBlob = convertToWAV(concatenated, 16000);
                       const metadata = {
@@ -254,7 +254,7 @@ export default function App() {
                         sampleRate: 16000,
                         channels: 1
                       };
-                      
+
                       uploadWAV(wavBlob, metadata);
                     }
                   }
@@ -326,15 +326,15 @@ export default function App() {
         <p style={{ color: '#1976d2' }}>Loading VAD model...</p>
       )}
       {uploadStatus && (
-        <p style={{ 
-          color: uploadStatus.includes('successful') ? 'green' : 
+        <p style={{
+          color: uploadStatus.includes('successful') ? 'green' :
                  uploadStatus.includes('Uploading') ? '#1976d2' : 'red',
-          marginBottom: '10px' 
+          marginBottom: '10px'
         }}>{uploadStatus}</p>
       )}
 
       {!listening ? (
-        <button 
+        <button
           onClick={startListening}
           disabled={loading}
           style={{
@@ -351,7 +351,7 @@ export default function App() {
           {loading ? 'Loading...' : 'Turn Mic On'}
         </button>
       ) : (
-        <button 
+        <button
           onClick={stopListening}
           style={{
             padding: '10px 20px',
@@ -385,15 +385,15 @@ export default function App() {
           <h3>Recorded Segments</h3>
           <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px', borderRadius: '5px' }}>
             {recordedSegments.map(segment => (
-              <div key={segment.id} style={{ 
-                marginBottom: '8px', 
-                padding: '5px', 
-                backgroundColor: '#f5f5f5', 
+              <div key={segment.id} style={{
+                marginBottom: '8px',
+                padding: '5px',
+                backgroundColor: '#f5f5f5',
                 borderRadius: '3px',
                 fontSize: '14px'
               }}>
-                <strong>{segment.timestamp}</strong> - 
-                Duration: {segment.duration.toFixed(1)}s - 
+                <strong>{segment.timestamp}</strong> -
+                Duration: {segment.duration.toFixed(1)}s -
                 Status: <span style={{ color: segment.status === 'uploaded' ? 'green' : 'orange' }}>
                   {segment.status}
                 </span>
