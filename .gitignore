@@ -256,4 +256,8 @@ storage/
 .Trashes
 .Trash-1000/
 
-post-provision
+post-provision# VAD App large files
+vad-app/public/*.onnx
+vad-app/public/*.wasm
+vad-app/public/*.onnx
+vad-app/public/*.wasm
