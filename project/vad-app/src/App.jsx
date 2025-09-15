@@ -197,9 +197,9 @@ export default function App() {
 
               // Use hysteresis and debouncing for stable detection
               const speechThreshold = 0.35;  // Higher threshold for speech start
-              const silenceThreshold = 0.1; // Much lower threshold for speech end (avoid breath cutoffs)
+              const silenceThreshold = 0.05; // Much lower threshold for speech end (avoid breath cutoffs)
               const requiredSpeechFrames = 2; // Require 3 consecutive detections for speech start
-              const requiredSilenceFrames = 7; // Require 5 consecutive detections for speech end
+              const requiredSilenceFrames = 20; // Require 5 consecutive detections for speech end
 
               if (prob > speechThreshold) {
                 speechFrameCount++;
