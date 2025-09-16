@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import * as ort from 'onnxruntime-web';
 
 // Configure ONNX Runtime Web environment before any usage
@@ -7,7 +7,7 @@ ort.env.wasm.wasmPaths = {
   'ort-wasm-simd-threaded.jsep.wasm': 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort-wasm-simd-threaded.jsep.wasm'
 };
 ort.env.wasm.numThreads = 1; // Disable threading to avoid issues
-ort.env.logLevel = 'verbose'; // Enable verbose logging
+ort.env.logLevel = 'warning'; // Reduce console noise
 
 // WAV conversion utility
 function convertToWAV(audioBuffer, sampleRate = 16000) {
