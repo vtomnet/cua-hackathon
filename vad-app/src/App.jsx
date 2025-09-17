@@ -1,13 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import * as ort from 'onnxruntime-web';
 
 // Configure ONNX Runtime Web environment before any usage
 ort.env.wasm.wasmPaths = {
-  'ort-wasm-simd-threaded.wasm': '/ort-wasm-simd-threaded.wasm',
-  'ort-wasm-simd-threaded.jsep.wasm': '/ort-wasm-simd-threaded.jsep.wasm'
+  'ort-wasm-simd-threaded.wasm': 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort-wasm-simd-threaded.wasm',
+  'ort-wasm-simd-threaded.jsep.wasm': 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort-wasm-simd-threaded.jsep.wasm'
 };
 ort.env.wasm.numThreads = 1; // Disable threading to avoid issues
-ort.env.logLevel = 'verbose'; // Enable verbose logging
+ort.env.logLevel = 'warning'; // Reduce console noise
 
 // WAV conversion utility
 function convertToWAV(audioBuffer, sampleRate = 16000) {
@@ -47,6 +47,15 @@ function convertToWAV(audioBuffer, sampleRate = 16000) {
   return new Blob([arrayBuffer], { type: 'audio/wav' });
 }
 
+// Energy calculation for dual-threshold VAD
+function calculateRMS(audioData) {
+  let sum = 0;
+  for (let i = 0; i < audioData.length; i++) {
+    sum += audioData[i] * audioData[i];
+  }
+  return Math.sqrt(sum / audioData.length);
+}
+
 export default function App() {
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -61,6 +70,12 @@ export default function App() {
   const stateRef = useRef(null);
   const recordingBufferRef = useRef([]);
   const isRecordingRef = useRef(false);
+  
+  // Dual-threshold VAD state
+  const vadStateRef = useRef('listening'); // listening, potential_speech, speech
+  const rollingBufferRef = useRef([]);
+  const potentialStartTimeRef = useRef(0);
+  const hangoverFramesRef = useRef(0);
 
   // Upload WAV to server
   const uploadWAV = async (wavBlob, metadata) => {
@@ -94,7 +109,7 @@ export default function App() {
       setUploadStatus('Upload error');
       console.error('Upload error:', error);
     }
-
+    
     setTimeout(() => setUploadStatus(''), 3000);
   };
 
@@ -115,7 +130,7 @@ export default function App() {
           try {
             modelRef.current = await ort.InferenceSession.create(
               modelUrl,
-              {
+              { 
                 executionProviders: ['cpu'], // Use CPU backend to avoid WASM issues
                 graphOptimizationLevel: 'disabled',
                 executionMode: 'sequential'
@@ -129,8 +144,8 @@ export default function App() {
             modelUrl = 'https://huggingface.co/onnx-community/silero-vad/resolve/main/onnx/model.onnx?download=true';
             modelRef.current = await ort.InferenceSession.create(
               modelUrl,
-              {
-                executionProviders: ['cpu'], // Use CPU backend to avoid WASM issues
+              { 
+                executionProviders: ['cpu'],
                 graphOptimizationLevel: 'disabled',
                 executionMode: 'sequential'
               }
@@ -142,145 +157,138 @@ export default function App() {
         } catch (e) {
           console.error('VAD model load failed:', e.message, e.stack);
           console.warn('Using volume-based detection as fallback');
+          // Set a flag to use simple energy-based VAD
+          modelRef.current = 'fallback';
         }
       }
 
       const processor = audioContextRef.current.createScriptProcessor(4096, 1, 1);
-      let isSpeech = false;
-      let speechFrameCount = 0; // Count consecutive speech detections
-      let silenceFrameCount = 0; // Count consecutive silence detections
-      let probabilityBuffer = []; // Buffer to smooth probability scores
-      const bufferSize = 5; // Average over 5 recent predictions
+      
+      // Dual-threshold VAD parameters - adjusted for better performance
+      const lowThreshold = 0.01;      // Lower threshold for initial detection
+      const highThreshold = 0.03;     // Higher threshold for speech confirmation
+      const preBufferMs = 50;        // Pre-buffer time in milliseconds
+      const confirmationWindowMs = 500; // Confirmation window for speech start
+      const hangoverFrames = 20;      // Frames to wait before confirming speech end
+      const sampleRate = 16000;
+      const frameSize = 512;
+      const preBufferFrames = Math.ceil((preBufferMs * sampleRate) / (frameSize * 1000));
+      
+      rollingBufferRef.current = [];
+      vadStateRef.current = 'listening';
+      hangoverFramesRef.current = 0;
 
       processor.onaudioprocess = async (e) => {
         const inputData = e.inputBuffer.getChannelData(0);
-
-        // Always collect audio data if we're in a recording session
-        if (isRecordingRef.current) {
-          recordingBufferRef.current.push(new Float32Array(inputData));
-        }
-
-        if (modelRef.current && stateRef.current) {
-          // Process with VAD if model is available
-          const chunkSize = 512; // Model requirement - cannot change this
-          for (let i = 0; i < inputData.length; i += chunkSize) {
-            const chunk = inputData.slice(i, i + chunkSize);
-            if (chunk.length !== chunkSize) continue;
-            try {
-              // Create input tensor with correct shape [1, chunkSize]
-              const inputTensor = new ort.Tensor('float32', chunk, [1, chunkSize]);
-
-              // Run inference with input, state, and sample rate
-              const feeds = {
-                input: inputTensor,
-                state: stateRef.current,
-                sr: new ort.Tensor('int64', [16000], [1])
-              };
-              const results = await modelRef.current.run(feeds);
-
-              // Update state for next iteration
-              if (results.state) {
-                stateRef.current = results.state;
-              }
-
-              // Get speech probability and smooth it
-              const rawProb = results.output ? results.output.data[0] : 0;
-
-              // Add to probability buffer and keep only recent values
-              probabilityBuffer.push(rawProb);
-              if (probabilityBuffer.length > bufferSize) {
-                probabilityBuffer.shift();
-              }
-
-              // Calculate smoothed probability (average of recent predictions)
-              const prob = probabilityBuffer.reduce((sum, p) => sum + p, 0) / probabilityBuffer.length;
-
-              // Use hysteresis and debouncing for stable detection
-              const speechThreshold = 0.35;  // Higher threshold for speech start
-              const silenceThreshold = 0.1; // Much lower threshold for speech end (avoid breath cutoffs)
-              const requiredSpeechFrames = 2; // Require 3 consecutive detections for speech start
-              const requiredSilenceFrames = 7; // Require 5 consecutive detections for speech end
-
-              if (prob > speechThreshold) {
-                speechFrameCount++;
-                silenceFrameCount = 0;
-
-                // Trigger speech start after consecutive detections
-                if (!isSpeech && speechFrameCount >= requiredSpeechFrames) {
-                  console.log('speech start');
-                  setSpeaking(true);
-                  isSpeech = true;
-
-                  // Start recording
-                  isRecordingRef.current = true;
-                  recordingBufferRef.current = [];
-                  setRecording(true);
-                  console.log('Recording started');
-                }
-              } else if (prob < silenceThreshold) {
-                silenceFrameCount++;
-                speechFrameCount = 0;
-
-                // Trigger speech end after consecutive silence detections
-                if (isSpeech && silenceFrameCount >= requiredSilenceFrames) {
-                  console.log('speech end');
-                  setSpeaking(false);
-                  isSpeech = false;
-
-                  // Stop recording and process
-                  if (isRecordingRef.current) {
-                    isRecordingRef.current = false;
-                    setRecording(false);
-                    console.log('Recording stopped');
-
-                    // Convert recorded audio to WAV
-                    const recordedChunks = recordingBufferRef.current;
-                    if (recordedChunks.length > 0) {
-                      // Concatenate all audio chunks
-                      const totalLength = recordedChunks.reduce((sum, chunk) => sum + chunk.length, 0);
-                      const concatenated = new Float32Array(totalLength);
-                      let offset = 0;
-
-                      for (const chunk of recordedChunks) {
-                        concatenated.set(chunk, offset);
-                        offset += chunk.length;
-                      }
-
-                      // Convert to WAV and upload
-                      const wavBlob = convertToWAV(concatenated, 16000);
-                      const metadata = {
-                        duration: totalLength / 16000,
-                        timestamp: new Date().toISOString(),
-                        sampleRate: 16000,
-                        channels: 1
-                      };
-
-                      uploadWAV(wavBlob, metadata);
-                    }
-                  }
-                }
-              } else {
-                // In between thresholds - maintain current state but reset counters
-                speechFrameCount = 0;
-                silenceFrameCount = 0;
-              }
-            } catch (e) {
-              setError(`VAD processing error: ${e.message}`);
+        
+        // Process audio in frames for dual-threshold VAD
+        const frameSize = 512;
+        for (let i = 0; i < inputData.length; i += frameSize) {
+          const frame = inputData.slice(i, i + frameSize);
+          if (frame.length !== frameSize) continue;
+          
+          // Calculate energy (RMS) for this frame
+          const energy = calculateRMS(frame);
+          
+          // Add frame to rolling buffer (maintain pre-buffer)
+          rollingBufferRef.current.push(new Float32Array(frame));
+          if (rollingBufferRef.current.length > preBufferFrames) {
+            rollingBufferRef.current.shift();
+          }
+          
+          // Debug logging disabled for cleaner console
+          // if (Math.random() < 0.01) { // Log 1% of frames
+          //   console.log(`Energy: ${energy.toFixed(6)}, State: ${vadStateRef.current}, Buffer: ${rollingBufferRef.current.length}, Hangover: ${hangoverFramesRef.current}`);
+          // }
+          
+          // Dual-threshold VAD state machine
+          const currentTime = Date.now();
+          
+          if (vadStateRef.current === 'listening') {
+            if (energy > lowThreshold) {
+              vadStateRef.current = 'potential_speech';
+              potentialStartTimeRef.current = currentTime;
+              console.log('Potential speech detected (low threshold)');
             }
           }
-        } else {
-          // Volume-based detection as fallback
-          const volume = Math.sqrt(inputData.reduce((sum, sample) => sum + sample * sample, 0) / inputData.length);
-          if (volume > 0.01 && !isSpeech) {
-            console.log('speech start (volume-based)');
-            setSpeaking(true);
-            isSpeech = true;
-          } else if (volume < 0.005 && isSpeech) {
-            console.log('speech end (volume-based)');
-            setSpeaking(false);
-            isSpeech = false;
+          
+          else if (vadStateRef.current === 'potential_speech') {
+            if (energy > highThreshold) {
+              // Confirmed speech start
+              vadStateRef.current = 'speech';
+              setSpeaking(true);
+              isRecordingRef.current = true;
+              recordingBufferRef.current = [];
+              setRecording(true);
+              console.log('Speech start confirmed (high threshold)');
+              
+              // Flush rolling buffer + current frame to recording buffer
+              for (const bufferedFrame of rollingBufferRef.current) {
+                recordingBufferRef.current.push(bufferedFrame);
+              }
+              recordingBufferRef.current.push(new Float32Array(frame));
+            } else if (currentTime - potentialStartTimeRef.current > confirmationWindowMs) {
+              // False trigger - reset to listening
+              vadStateRef.current = 'listening';
+              console.log('False trigger - reset to listening');
+            }
+          }
+          
+          else if (vadStateRef.current === 'speech') {
+            // Always add frames to recording buffer during speech
+            recordingBufferRef.current.push(new Float32Array(frame));
+            
+            if (energy < lowThreshold) {
+              hangoverFramesRef.current++;
+              if (hangoverFramesRef.current >= hangoverFrames) {
+                // Speech end confirmed
+                vadStateRef.current = 'listening';
+                setSpeaking(false);
+                isRecordingRef.current = false;
+                setRecording(false);
+                hangoverFramesRef.current = 0;
+                console.log('Speech end confirmed');
+                
+                // Process recorded audio
+                const recordedChunks = recordingBufferRef.current;
+                if (recordedChunks.length > 0) {
+                  // Concatenate all audio chunks
+                  const totalLength = recordedChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+                  const duration = totalLength / 16000;
+                  
+                  // Only process if recording is long enough (at least 0.5 seconds)
+                  if (duration >= 0.5) {
+                    const concatenated = new Float32Array(totalLength);
+                    let offset = 0;
+                    
+                    for (const chunk of recordedChunks) {
+                      concatenated.set(chunk, offset);
+                      offset += chunk.length;
+                    }
+                    
+                    // Convert to WAV and upload
+                    const wavBlob = convertToWAV(concatenated, 16000);
+                    const metadata = {
+                      duration: duration,
+                      timestamp: new Date().toISOString(),
+                      sampleRate: 16000,
+                      channels: 1
+                    };
+                    
+                    uploadWAV(wavBlob, metadata);
+                  } else {
+                    console.log(`Recording too short (${duration.toFixed(2)}s), discarding`);
+                  }
+                }
+              }
+            } else {
+              // Reset hangover counter if energy is above threshold
+              hangoverFramesRef.current = 0;
+            }
           }
         }
+
+        // Dual-threshold VAD implementation complete
       };
 
       source.connect(processor);
@@ -308,8 +316,17 @@ export default function App() {
     if (audioContextRef.current) {
       audioContextRef.current.close();
     }
+    
+    // Reset VAD state
+    vadStateRef.current = 'listening';
+    hangoverFramesRef.current = 0;
+    rollingBufferRef.current = [];
+    recordingBufferRef.current = [];
+    isRecordingRef.current = false;
+    
     setListening(false);
     setSpeaking(false);
+    setRecording(false);
   };
 
   return (
@@ -326,15 +343,15 @@ export default function App() {
         <p style={{ color: '#1976d2' }}>Loading VAD model...</p>
       )}
       {uploadStatus && (
-        <p style={{
-          color: uploadStatus.includes('successful') ? 'green' :
+        <p style={{ 
+          color: uploadStatus.includes('successful') ? 'green' : 
                  uploadStatus.includes('Uploading') ? '#1976d2' : 'red',
-          marginBottom: '10px'
+          marginBottom: '10px' 
         }}>{uploadStatus}</p>
       )}
 
       {!listening ? (
-        <button
+        <button 
           onClick={startListening}
           disabled={loading}
           style={{
@@ -351,7 +368,7 @@ export default function App() {
           {loading ? 'Loading...' : 'Turn Mic On'}
         </button>
       ) : (
-        <button
+        <button 
           onClick={stopListening}
           style={{
             padding: '10px 20px',
@@ -385,15 +402,15 @@ export default function App() {
           <h3>Recorded Segments</h3>
           <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px', borderRadius: '5px' }}>
             {recordedSegments.map(segment => (
-              <div key={segment.id} style={{
-                marginBottom: '8px',
-                padding: '5px',
-                backgroundColor: '#f5f5f5',
+              <div key={segment.id} style={{ 
+                marginBottom: '8px', 
+                padding: '5px', 
+                backgroundColor: '#f5f5f5', 
                 borderRadius: '3px',
                 fontSize: '14px'
               }}>
-                <strong>{segment.timestamp}</strong> -
-                Duration: {segment.duration.toFixed(1)}s -
+                <strong>{segment.timestamp}</strong> - 
+                Duration: {segment.duration.toFixed(1)}s - 
                 Status: <span style={{ color: segment.status === 'uploaded' ? 'green' : 'orange' }}>
                   {segment.status}
                 </span>
