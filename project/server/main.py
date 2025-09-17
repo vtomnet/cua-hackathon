@@ -113,7 +113,6 @@ async def process_input():
         agent_start = asyncio.get_event_loop().time()
 
         async for result in agent.run(messages):
-            print("RESULT:", result, file=sys.stderr)
             logger.debug(f"[Request {request_id}] Agent result: {result}")
             for item in result['output']:
                 if item['type'] == 'message':
@@ -137,6 +136,37 @@ async def process_input():
     except Exception as e:
         logger.error(f"[Request {request_id}] Error processing request: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
+
+async def main():
+    async with Computer(
+        use_host_computer_server=True
+    ) as computer:
+        agent = ComputerAgent(
+            model="anthropic/claude-sonnet-4-20250514",
+            tools=[computer],
+            max_trajectory_budget=5.0,
+            use_prompt_caching=True,
+            only_n_most_recent_images=2,
+        )
+
+        messages = [
+            {"role": "user", "content": USER_PROMPT}, # TODO figure out if 'system' is correct for claude
+            {"role": "user", "content": "Open firefox and go to github.com."},
+        ]
+
+        screenshots = [await computer.interface.screenshot()]
+
+        async for result in agent.run(messages):
+            print("RESULT:", result, end='\n\n', file=sys.stderr)
+            for item in result['output']:
+                if item['type'] == 'message':
+                    print(item['content'][0]['text'])
+
+        screenshots.append(await computer.interface.screenshot())
+
+        for i, screenshot in enumerate(screenshots):
+            with open(f'screenshot{i}.png', 'wb') as f:
+                f.write(screenshot)
 
 if __name__ == "__main__":
     # Run the Quart server instead of the main function
