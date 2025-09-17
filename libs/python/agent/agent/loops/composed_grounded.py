@@ -103,19 +103,19 @@ GROUNDED_COMPUTER_TOOL_SCHEMA = {
 def _prepare_tools_for_grounded(tool_schemas: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Prepare tools for grounded API format"""
     grounded_tools = []
-    
+
     for schema in tool_schemas:
         if schema["type"] == "computer":
             grounded_tools.append(GROUNDED_COMPUTER_TOOL_SCHEMA)
         else:
             grounded_tools.append(schema)
-    
+
     return grounded_tools
 
 def get_last_computer_call_image(messages: List[Dict[str, Any]]) -> Optional[str]:
     """Get the last computer call output image from messages."""
     for message in reversed(messages):
-        if (isinstance(message, dict) and 
+        if (isinstance(message, dict) and
             message.get("type") == "computer_call_output" and
             isinstance(message.get("output"), dict) and
             message["output"].get("type") == "input_image"):
@@ -129,14 +129,14 @@ def get_last_computer_call_image(messages: List[Dict[str, Any]]) -> Optional[str
 class ComposedGroundedConfig:
     """
     Composed-grounded agent configuration that uses both grounding and thinking models.
-    
+
     The model parameter should be in format: "grounding_model+thinking_model"
     e.g., "huggingface-local/HelloKKMe/GTA1-7B+gemini/gemini-1.5-pro"
     """
-    
+
     def __init__(self):
         self.desc2xy: Dict[str, Tuple[float, float]] = {}
-    
+
     async def predict_step(
         self,
         messages: List[Dict[str, Any]],
@@ -154,7 +154,7 @@ class ComposedGroundedConfig:
     ) -> Dict[str, Any]:
         """
         Composed-grounded predict step implementation.
-        
+
         Process:
         0. Store last computer call image, if none then take a screenshot
         1. Convert computer calls from xy to descriptions
@@ -169,16 +169,16 @@ class ComposedGroundedConfig:
         if "+" not in model:
             raise ValueError(f"Composed model must be in format 'grounding_model+thinking_model', got: {model}")
         grounding_model, thinking_model = model.split("+", 1)
-        
+
         pre_output_items = []
-        
+
         # Step 0: Store last computer call image, if none then take a screenshot
         last_image_b64 = get_last_computer_call_image(messages)
         if last_image_b64 is None:
             # Take a screenshot
             screenshot_b64 = await computer_handler.screenshot() # type: ignore
             if screenshot_b64:
-                
+
                 call_id = uuid.uuid4().hex
                 pre_output_items += [
                     {
@@ -209,23 +209,23 @@ class ComposedGroundedConfig:
                     },
                 ]
                 last_image_b64 = screenshot_b64
-                
+
                 # Call screenshot callback if provided
                 if _on_screenshot:
                     await _on_screenshot(screenshot_b64)
-        
+
         tool_schemas = _prepare_tools_for_grounded(tools) # type: ignore
 
         # Step 1: Convert computer calls from xy to descriptions
         input_messages = messages + pre_output_items
         messages_with_descriptions = convert_computer_calls_xy2desc(input_messages, self.desc2xy)
-        
+
         # Step 2: Convert responses items to completion messages
         completion_messages = convert_responses_items_to_completion_messages(
-            messages_with_descriptions, 
+            messages_with_descriptions,
             allow_images_in_tool_results=False
         )
-        
+
         # Step 3: Call thinking model with litellm.acompletion
         api_kwargs = {
             "model": thinking_model,
@@ -238,18 +238,18 @@ class ComposedGroundedConfig:
 
         if use_prompt_caching:
             api_kwargs["use_prompt_caching"] = use_prompt_caching
-        
+
         # Call API start hook
         if _on_api_start:
             await _on_api_start(api_kwargs)
-        
+
         # Make the completion call
         response = await litellm.acompletion(**api_kwargs)
-        
+
         # Call API end hook
         if _on_api_end:
             await _on_api_end(api_kwargs, response)
-        
+
         # Extract usage information
         usage = {
             **response.usage.model_dump(), # type: ignore
@@ -257,24 +257,24 @@ class ComposedGroundedConfig:
         }
         if _on_usage:
             await _on_usage(usage)
-        
+
         # Step 4: Convert completion messages back to responses items format
         response_dict = response.model_dump() # type: ignore
         choice_messages = [choice["message"] for choice in response_dict["choices"]]
         thinking_output_items = []
-        
+
         for choice_message in choice_messages:
             thinking_output_items.extend(convert_completion_messages_to_responses_items([choice_message]))
-        
+
         # Step 5: Get all element descriptions and populate desc2xy mapping
         element_descriptions = get_all_element_descriptions(thinking_output_items)
-        
+
         if element_descriptions and last_image_b64:
             # Use grounding model to predict coordinates for each description
             grounding_agent_conf = find_agent_config(grounding_model)
             if grounding_agent_conf:
                 grounding_agent = grounding_agent_conf.agent_class()
-                
+
                 for desc in element_descriptions:
                     for _ in range(3): # try 3 times
                         coords = await grounding_agent.predict_click(
@@ -285,16 +285,16 @@ class ComposedGroundedConfig:
                         if coords:
                             self.desc2xy[desc] = coords
                             break
-        
+
         # Step 6: Convert computer calls from descriptions back to xy coordinates
         final_output_items = convert_computer_calls_desc2xy(thinking_output_items, self.desc2xy)
-        
+
         # Step 7: Return output and usage
         return {
             "output": pre_output_items + final_output_items,
             "usage": usage
         }
-    
+
     async def predict_click(
         self,
         model: str,
@@ -304,14 +304,14 @@ class ComposedGroundedConfig:
     ) -> Optional[Tuple[int, int]]:
         """
         Predict click coordinates using the grounding model.
-        
+
         For composed models, uses only the grounding model part for click prediction.
         """
         # Parse the composed model to get grounding model
         if "+" not in model:
             raise ValueError(f"Composed model must be in format 'grounding_model+thinking_model', got: {model}")
         grounding_model, thinking_model = model.split("+", 1)
-        
+
         # Find and use the grounding agent
         grounding_agent_conf = find_agent_config(grounding_model)
         if grounding_agent_conf:
@@ -322,9 +322,9 @@ class ComposedGroundedConfig:
                 instruction=instruction,
                 **kwargs
             )
-        
+
         return None
-    
+
     def get_capabilities(self) -> List[AgentCapability]:
         """Return the capabilities supported by this agent."""
         return ["click", "step"]

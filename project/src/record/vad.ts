@@ -19,8 +19,8 @@ export interface VADStatus {
 export function defaultVADOptions(): VADOptions {
   return {
     rate: 16000,
-    outDir: 'segments',
-    modelPath: 'rec/public/silero_vad_v6.onnx',
+    outDir: 'log/segments',
+    modelPath: 'resources/silero_vad_v6.onnx',
     speechThreshold: 0.35,
     silenceThreshold: 0.05,
     requiredSpeechFrames: 2,
@@ -76,9 +76,17 @@ function nowTag() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
 }
 
-function pickMicCommands(rate: number): Array<{ cmd: string; args: string[] }> {
+function getMicCommand(rate: number): string[] {
   return [
-    { cmd: 'sox', args: ['-q', '-d', '-b', '16', '-r', String(rate), '-c', '1', '-e', 'signed-integer', '-t', 'raw', '-'] },
+    'sox',
+    '-q',
+    '-d',
+    '-b', '16',
+    '-r', String(rate),
+    '-c', '1',
+    '-e', 'signed-integer',
+    '-t', 'raw',
+    '-'
   ];
 }
 
@@ -129,13 +137,12 @@ export function createVADController(initial?: Partial<VADOptions>) {
     let silenceFrames = 0;
     let segmentIndex = 0;
 
-    const cmds = pickMicCommands(opts.rate);
+    const cmd = getMicCommand(opts.rate);
     let lastErr: unknown = null;
     abort = false;
 
     const tryStart = (): Spawned => {
-      const { cmd, args } = cmds[0];
-      return Bun.spawn({ cmd: [cmd, ...args], stdout: 'pipe', stderr: 'pipe' });
+      return Bun.spawn({ cmd, stdout: 'pipe', stderr: 'pipe' });
     };
     proc = tryStart();
     running = true;

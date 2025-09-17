@@ -1,6 +1,7 @@
 const BASE = process.env.SERVER_URL || "http://localhost:5173";
 
 async function call(path: string, init?: RequestInit) {
+  console.log(`Fetching ${BASE + path}`);
   const res = await fetch(BASE + path, init);
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.json();
@@ -54,4 +55,3 @@ if (import.meta.main) {
     process.exit(1);
   });
 }
-

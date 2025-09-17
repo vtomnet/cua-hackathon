@@ -92,13 +92,13 @@ def get_parser():
     if OMNIPARSER_SINGLETON is None:
         OMNIPARSER_SINGLETON = OmniParser()
     return OMNIPARSER_SINGLETON
-    
+
 def get_last_computer_call_output(messages: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     """Get the last computer_call_output message from a messages list.
-    
+
     Args:
         messages: List of messages to search through
-        
+
     Returns:
         The last computer_call_output message dict, or None if not found
     """
@@ -111,7 +111,7 @@ def _prepare_tools_for_omniparser(tool_schemas: List[Dict[str, Any]]) -> Tuple[T
     """Prepare tools for OpenAI API format"""
     omniparser_tools = []
     id2xy = dict()
-    
+
     for schema in tool_schemas:
         if schema["type"] == "computer":
             omniparser_tools.append(SOM_TOOL_SCHEMA)
@@ -123,7 +123,7 @@ def _prepare_tools_for_omniparser(tool_schemas: List[Dict[str, Any]]) -> Tuple[T
             # Function tools use OpenAI-compatible schema directly (liteLLM expects this format)
             # Schema should be: {type, name, description, parameters}
             omniparser_tools.append({ "type": "function", **schema["function"] })
-    
+
     return omniparser_tools, id2xy
 
 async def replace_function_with_computer_call(item: Dict[str, Any], id2xy: Dict[int, Tuple[float, float]]):
@@ -140,7 +140,7 @@ async def replace_function_with_computer_call(item: Dict[str, Any], id2xy: Dict[
 
     item_id = item.get("id")
     call_id = item.get("call_id")
-    
+
     if fn_name == "computer":
       action = fn_args.get("action")
       element_id = fn_args.get("element_id")
@@ -187,7 +187,7 @@ async def replace_computer_call_with_function(item: Dict[str, Any], xy2id: Dict[
     """
     Convert computer_call back to function_call format.
     Also handles computer_call_output -> function_call_output conversion.
-    
+
     Args:
         item: The item to convert
         xy2id: Mapping from (x, y) coordinates to element IDs
@@ -202,12 +202,12 @@ async def replace_computer_call_with_function(item: Dict[str, Any], xy2id: Dict[
 
     if item_type == "computer_call":
         action_data = item.get("action", {})
-        
+
         # Extract coordinates and convert back to element IDs
         element_id = _get_element_id(action_data.get("x"), action_data.get("y"))
         start_element_id = _get_element_id(action_data.get("start_x"), action_data.get("start_y"))
         end_element_id = _get_element_id(action_data.get("end_x"), action_data.get("end_y"))
-        
+
         # Build function arguments
         fn_args = {
             "action": action_data.get("type"),
@@ -220,10 +220,10 @@ async def replace_computer_call_with_function(item: Dict[str, Any], xy2id: Dict[
             "scroll_x": action_data.get("scroll_x"),
             "scroll_y": action_data.get("scroll_y")
         }
-        
+
         # Remove None values to keep the JSON clean
         fn_args = {k: v for k, v in fn_args.items() if v is not None}
-        
+
         return [{
             "type": "function_call",
             "name": "computer",
@@ -233,15 +233,15 @@ async def replace_computer_call_with_function(item: Dict[str, Any], xy2id: Dict[
             "status": "completed",
 
             # Fall back to string representation
-            "content": f"Used tool: {action_data.get("type")}({json.dumps(fn_args)})"
+            # "content": f"Used tool: {action_data.get("type")}({json.dumps(fn_args)})"
         }]
-    
+
     elif item_type == "computer_call_output":
         # Simple conversion: computer_call_output -> function_call_output
         return [{
             "type": "function_call_output",
             "call_id": item.get("call_id"),
-            "content": [item.get("output")],
+            "output": json.dumps(item.get("output")),
             "id": item.get("id"),
             "status": "completed"
         }]
@@ -252,7 +252,7 @@ async def replace_computer_call_with_function(item: Dict[str, Any], xy2id: Dict[
 @register_agent(models=r"omniparser\+.*|omni\+.*", priority=2)
 class OmniparserConfig(AsyncAgentConfig):
     """Omniparser agent configuration implementing AsyncAgentConfig protocol."""
-    
+
     async def predict_step(
         self,
         messages: List[Dict[str, Any]],
@@ -270,14 +270,14 @@ class OmniparserConfig(AsyncAgentConfig):
     ) -> Dict[str, Any]:
         """
         OpenAI computer-use-preview agent loop using liteLLM responses.
-        
+
         Supports OpenAI's computer use preview models.
         """
         if not OMNIPARSER_AVAILABLE:
             raise ValueError("omniparser loop requires som to be installed. Install it with `pip install cua-som`.")
-          
+
         tools = tools or []
-        
+
         llm_model = model.split('+')[-1]
 
         # Prepare tools for OpenAI API
@@ -295,7 +295,7 @@ class OmniparserConfig(AsyncAgentConfig):
                     await _on_screenshot(result.annotated_image_base64, "annotated_image")
                 for element in result.elements:
                     id2xy[element.id] = ((element.bbox.x1 + element.bbox.x2) / 2, (element.bbox.y1 + element.bbox.y2) / 2)
-        
+
         # handle computer calls -> function calls
         new_messages = []
         for message in messages:
@@ -314,11 +314,11 @@ class OmniparserConfig(AsyncAgentConfig):
             "num_retries": max_retries,
             **kwargs
         }
-        
+
         # Call API start hook
         if _on_api_start:
             await _on_api_start(api_kwargs)
-        
+
         print(str(api_kwargs)[:1000])
 
         # Use liteLLM responses
@@ -340,12 +340,12 @@ class OmniparserConfig(AsyncAgentConfig):
         new_output = []
         for i in range(len(response.output)): # type: ignore
           new_output += await replace_function_with_computer_call(response.output[i].model_dump(), id2xy) # type: ignore
-        
+
         return {
             "output": new_output,
             "usage": usage
         }
-    
+
     async def predict_click(
         self,
         model: str,
@@ -355,20 +355,20 @@ class OmniparserConfig(AsyncAgentConfig):
     ) -> Optional[Tuple[float, float]]:
         """
         Predict click coordinates using OmniParser and LLM.
-        
+
         Uses OmniParser to annotate the image with element IDs, then uses LLM
         to identify the correct element ID based on the instruction.
         """
         if not OMNIPARSER_AVAILABLE:
             return None
-        
+
         # Parse the image with OmniParser to get annotated image and elements
         parser = get_parser()
         result = parser.parse(image_b64)
-        
+
         # Extract the LLM model from composed model string
         llm_model = model.split('+')[-1]
-        
+
         # Create system prompt for element ID prediction
         SYSTEM_PROMPT = f'''
 You are an expert UI element locator. Given a GUI image annotated with numerical IDs over each interactable element, along with a user's element description, provide the ID of the specified element.
@@ -377,7 +377,7 @@ The image shows UI elements with numbered overlays. Each number corresponds to a
 
 Output only the element ID as a single integer.
 '''.strip()
-        
+
         # Prepare messages for LLM
         messages = [
             {
@@ -400,7 +400,7 @@ Output only the element ID as a single integer.
                 ]
             }
         ]
-        
+
         # Call LLM to predict element ID
         response = await litellm.acompletion(
             model=llm_model,
@@ -408,14 +408,14 @@ Output only the element ID as a single integer.
             max_tokens=10,
             temperature=0.1
         )
-        
+
         # Extract element ID from response
         response_text = response.choices[0].message.content.strip() # type: ignore
-        
+
         # Try to parse the element ID
         try:
             element_id = int(response_text)
-            
+
             # Find the element with this ID and return its center coordinates
             for element in result.elements:
                 if element.id == element_id:
@@ -425,9 +425,9 @@ Output only the element ID as a single integer.
         except ValueError:
             # If we can't parse the ID, return None
             pass
-            
+
         return None
-    
+
     def get_capabilities(self) -> List[AgentCapability]:
         """Return the capabilities supported by this agent."""
         return ["step"]

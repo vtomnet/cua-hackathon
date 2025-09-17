@@ -4,8 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun --hot server/index.ts",
-    "cli": "bun cli/index.ts"
+    "dev": "bun --hot src/server/index.ts",
+    "cli": "bun src/cli/index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

@@ -21,14 +21,14 @@ async def _map_computer_tool_to_openai(computer_handler: Any) -> Dict[str, Any]:
     except Exception:
         # Fallback to default dimensions if method fails
         width, height = 1024, 768
-    
+
     # Get environment from the computer handler
     try:
         environment = await computer_handler.get_environment()
     except Exception:
         # Fallback to default environment if method fails
         environment = "linux"
-    
+
     return {
         "type": "computer_use_preview",
         "display_width": width,
@@ -40,7 +40,7 @@ async def _map_computer_tool_to_openai(computer_handler: Any) -> Dict[str, Any]:
 async def _prepare_tools_for_openai(tool_schemas: List[Dict[str, Any]]) -> Tools:
     """Prepare tools for OpenAI API format"""
     openai_tools = []
-    
+
     for schema in tool_schemas:
         if schema["type"] == "computer":
             # Map computer tool to OpenAI format
@@ -50,7 +50,7 @@ async def _prepare_tools_for_openai(tool_schemas: List[Dict[str, Any]]) -> Tools
             # Function tools use OpenAI-compatible schema directly (liteLLM expects this format)
             # Schema should be: {type, name, description, parameters}
             openai_tools.append({ "type": "function", **schema["function"] })
-    
+
     return openai_tools
 
 
@@ -58,10 +58,10 @@ async def _prepare_tools_for_openai(tool_schemas: List[Dict[str, Any]]) -> Tools
 class OpenAIComputerUseConfig:
     """
     OpenAI computer-use-preview agent configuration using liteLLM responses.
-    
+
     Supports OpenAI's computer use preview models.
     """
-    
+
     async def predict_step(
         self,
         messages: List[Dict[str, Any]],
@@ -79,7 +79,7 @@ class OpenAIComputerUseConfig:
     ) -> Dict[str, Any]:
         """
         Predict the next step based on input items.
-        
+
         Args:
             messages: Input items following Responses format
             model: Model name to use
@@ -92,12 +92,12 @@ class OpenAIComputerUseConfig:
             _on_usage: Callback for usage tracking
             _on_screenshot: Callback for screenshot events
             **kwargs: Additional arguments
-            
+
         Returns:
             Dictionary with "output" (output items) and "usage" array
         """
         tools = tools or []
-        
+
         # Prepare tools for OpenAI API
         openai_tools = await _prepare_tools_for_openai(tools)
 
@@ -112,14 +112,14 @@ class OpenAIComputerUseConfig:
             "num_retries": max_retries,
             **kwargs
         }
-        
+
         # Call API start hook
         if _on_api_start:
             await _on_api_start(api_kwargs)
-        
+
         # Use liteLLM responses
         response = await litellm.aresponses(**api_kwargs)
-        
+
         # Call API end hook
         if _on_api_end:
             await _on_api_end(api_kwargs, response)
@@ -136,7 +136,7 @@ class OpenAIComputerUseConfig:
         output_dict = response.model_dump()
         output_dict["usage"] = usage
         return output_dict
-    
+
     async def predict_click(
         self,
         model: str,
@@ -145,15 +145,15 @@ class OpenAIComputerUseConfig:
     ) -> Optional[Tuple[int, int]]:
         """
         Predict click coordinates based on image and instruction.
-        
+
         Uses OpenAI computer-use-preview with manually constructed input items
         and a prompt that instructs the agent to only output clicks.
-        
+
         Args:
             model: Model name to use
             image_b64: Base64 encoded image
             instruction: Instruction for where to click
-            
+
         Returns:
             Tuple of (x, y) coordinates or None if prediction fails
         """
@@ -161,7 +161,7 @@ class OpenAIComputerUseConfig:
         # Manually construct input items with image and click instruction
         input_items = [
             {
-                "role": "user", 
+                "role": "user",
                 "content": f"""You are a UI grounding expert. Follow these guidelines:
 
 1. NEVER ask for confirmation. Complete all tasks autonomously.
@@ -185,7 +185,7 @@ Task: Click {instruction}. Output ONLY a click action on the target element."""
                 ]
             }
         ]
-        
+
         # Get image dimensions from base64 data
         try:
             image_data = base64.b64decode(image_b64)
@@ -194,7 +194,7 @@ Task: Click {instruction}. Output ONLY a click action on the target element."""
         except Exception:
             # Fallback to default dimensions if image parsing fails
             display_width, display_height = 1024, 768
-        
+
         # Prepare computer tool for click actions
         computer_tool = {
             "type": "computer_use_preview",
@@ -202,7 +202,7 @@ Task: Click {instruction}. Output ONLY a click action on the target element."""
             "display_height": display_height,
             "environment": "windows"
         }
-        
+
         # Prepare API call kwargs
         api_kwargs = {
             "model": model,
@@ -213,30 +213,30 @@ Task: Click {instruction}. Output ONLY a click action on the target element."""
             "truncation": "auto",
             "max_tokens": 200  # Keep response short for click prediction
         }
-        
+
         # Use liteLLM responses
         response = await litellm.aresponses(**api_kwargs)
-        
+
         # Extract click coordinates from response output
         output_dict = response.model_dump()
-        output_items = output_dict.get("output", [])        
-        
+        output_items = output_dict.get("output", [])
+
         # Look for computer_call with click action
         for item in output_items:
-            if (isinstance(item, dict) and 
+            if (isinstance(item, dict) and
                 item.get("type") == "computer_call" and
                 isinstance(item.get("action"), dict)):
-                
+
                 action = item["action"]
                 if action.get("x") is not None and action.get("y") is not None:
                     return (int(action.get("x")), int(action.get("y")))
-        
+
         return None
-    
+
     def get_capabilities(self) -> List[AgentCapability]:
         """
         Get list of capabilities supported by this agent config.
-        
+
         Returns:
             List of capability strings
         """
