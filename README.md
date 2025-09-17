@@ -29,20 +29,25 @@ With the Computer SDK, you can:
 - create & manage VMs [locally](https://docs.trycua.com/docs/computer-sdk/computers#cua-local-containers) or using [cua cloud](https://www.trycua.com/)
 
 With the Agent SDK, you can:
-- run computer-use models with a [consistent output](https://docs.trycua.com/docs/agent-sdk/chat-history#message-array-structure)
-- run composed agents using UI grounding models and any LLM
-- use any liteLLM provider (`openai/`, `openrouter/`, etc.) or our included local providers (`huggingface-local/`, `mlx/`)
-- quickly evaluate new UI agent models and UI grounding models
-  - `anthropic/claude-opus-4-1-20250805` (using [Computer-Use Models](https://docs.trycua.com/docs/agent-sdk/supported-agents/computer-use-agents))
-  - `openai/computer-use-preview`
-  - `openrouter/z-ai/glm-4.5v`
-  - `huggingface-local/ByteDance-Seed/UI-TARS-1.5-7B`
-  - `omniparser+{any LLM}` (using [Composed Agents](https://docs.trycua.com/docs/agent-sdk/supported-agents/composed-agents))
-  - `huggingface-local/HelloKKMe/GTA1-7B+{any LLM}`
-  - `huggingface/HelloKKMe/GTA1-32B+{any LLM}`
-  - `vllm_hosted/HelloKKMe/GTA1-72B+{any LLM}`
-  - `human/human` (using [Human-in-the-Loop](https://docs.trycua.com/docs/agent-sdk/supported-agents/human-in-the-loop))
+- run computer-use models with a [consistent schema](https://docs.trycua.com/docs/agent-sdk/message-format)
 - benchmark on OSWorld-Verified, SheetBench-V2, and more [with a single line of code using HUD](https://docs.trycua.com/docs/agent-sdk/integrations/hud) ([Notebook](https://github.com/trycua/cua/blob/main/notebooks/eval_osworld.ipynb))
+- combine UI grounding models with any LLM using [composed agents](https://docs.trycua.com/docs/agent-sdk/supported-agents/composed-agents)
+- use new UI agent models and UI grounding models from the Model Zoo below with just a model string (e.g., `ComputerAgent(model="openai/computer-use-preview")`)
+- use API or local inference by changing a prefix (e.g., `openai/`, `openrouter/`, `ollama/`, `huggingface-local/`, `mlx/`, [etc.](https://docs.litellm.ai/docs/providers))
+
+### CUA Model Zoo 🐨
+
+| [All-in-one CUAs](https://docs.trycua.com/docs/agent-sdk/supported-agents/computer-use-agents) | [UI Grounding Models](https://docs.trycua.com/docs/agent-sdk/supported-agents/composed-agents) | [UI Planning Models](https://docs.trycua.com/docs/agent-sdk/supported-agents/composed-agents) |
+|---|---|---|
+| `anthropic/claude-opus-4-1-20250805` | `huggingface-local/xlangai/OpenCUA-{7B,32B}` | any all-in-one CUA |
+| `openai/computer-use-preview` | `huggingface-local/HelloKKMe/GTA1-{7B,32B,72B}` | any VLM (using liteLLM, requires `tools` parameter) |
+| `openrouter/z-ai/glm-4.5v` | `huggingface-local/Hcompany/Holo1.5-{3B,7B,72B}` |  |
+| `huggingface-local/OpenGVLab/InternVL3_5-{1B,2B,4B,8B,...}` | any all-in-one CUA | |
+| `huggingface-local/ByteDance-Seed/UI-TARS-1.5-7B` | |
+| `omniparser+{ui planning}` | | |
+| `{ui grounding}+{ui planning}` | | |
+
+- `human/human` → [Human-in-the-Loop](https://docs.trycua.com/docs/agent-sdk/supported-agents/human-in-the-loop)
 
 Missing a model? [Raise a feature request](https://github.com/trycua/cua/issues/new?assignees=&labels=enhancement&projects=&title=%5BAgent%5D%3A+Add+model+support+for+) or [contribute](https://github.com/trycua/cua/blob/main/CONTRIBUTING.md)!
 

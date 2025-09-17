@@ -5,32 +5,36 @@ description: Combine grounding models with any LLM for computer-use capabilities
 
 Composed agents combine the best of both worlds: specialized grounding models for precise click prediction and powerful LLMs for task planning and reasoning.
 
-Use the format `"grounding_model+thinking_model"` to create a composed agent with any vision-enabled LiteLLM-compatible model.
+Use the format `"grounding_model+planning_model"` to create a composed agent with any vision-enabled LiteLLM-compatible model.
 
 ## How Composed Agents Work
 
-1. **Planning Phase**: The thinking model (LLM) analyzes the task and decides what actions to take (e.g., `click("find the login button")`, `type("username")`)
+1. **Planning Phase**: The planning model (LLM) analyzes the task and decides what actions to take (e.g., `click("find the login button")`, `type("username")`)
 2. **Grounding Phase**: The grounding model converts element descriptions to precise coordinates
 3. **Execution**: Actions are performed using the predicted coordinates
 
 ## Supported Grounding Models
 
-Any model that supports `predict_click()` can be used as the grounding component:
+Any model that supports `predict_click()` can be used as the grounding component. See the full list on [Grounding Models](./grounding-models).
 
-- `omniparser` (OSS set-of-marks model)
-- `huggingface-local/HelloKKMe/GTA1-7B` (OSS grounding model)
-- `huggingface-local/ByteDance-Seed/UI-TARS-1.5-7B` (OSS unified model)
-- `claude-3-5-sonnet-20241022` (Anthropic CUA)
-- `openai/computer-use-preview` (OpenAI CUA)
+- OpenCUA: `huggingface-local/xlangai/OpenCUA-{7B,32B}`
+- GTA1 family: `huggingface-local/HelloKKMe/GTA1-{7B,32B,72B}`
+- Holo 1.5 family: `huggingface-local/Hcompany/Holo1.5-{3B,7B,72B}`
+- InternVL 3.5 family: `huggingface-local/OpenGVLab/InternVL3_5-{1B,2B,4B,8B,...}`
+- UI‑TARS 1.5: `huggingface-local/ByteDance-Seed/UI-TARS-1.5-7B` (also supports full CU)
+- OmniParser (OCR): `omniparser` (requires combination with a LiteLLM vision model)
 
-## Supported Thinking Models
+## Supported Planning Models
 
-Any vision-enabled LiteLLM-compatible model can be used as the thinking component:
+Any vision-enabled LiteLLM-compatible model can be used as the planning component:
 
-- **Anthropic**: `anthropic/claude-3-5-sonnet-20241022`, `anthropic/claude-3-opus-20240229`
-- **OpenAI**: `openai/gpt-5`, `openai/gpt-o3`, `openai/gpt-4o`
-- **Google**: `gemini/gemini-1.5-pro`, `vertex_ai/gemini-pro-vision`
-- **Local models**: Any Hugging Face vision-language model
+- Any All‑in‑one CUA (planning-capable). See [All‑in‑one CUAs](./computer-use-agents).
+- Any VLM via LiteLLM providers: `anthropic/*`, `openai/*`, `openrouter/*`, `gemini/*`, `vertex_ai/*`, `huggingface-local/*`, `mlx/*`, etc.
+- Examples:
+  - **Anthropic**: `anthropic/claude-3-5-sonnet-20241022`, `anthropic/claude-opus-4-1-20250805`
+  - **OpenAI**: `openai/gpt-5`, `openai/gpt-o3`, `openai/gpt-4o`
+  - **Google**: `gemini/gemini-1.5-pro`, `vertex_ai/gemini-pro-vision`
+  - **Local models**: Any Hugging Face vision-language model
 
 ## Usage Examples
 

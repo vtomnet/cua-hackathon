@@ -46,6 +46,20 @@ glm45v-hf = [
     "torch",
     "transformers-v4.55.0-GLM-4.5V-preview"
 ]
+opencua-hf = [
+    "accelerate",
+    "torch",
+    "transformers==4.53.0",
+    "tiktoken>=0.11.0",
+    "blobfile>=3.0.0"
+]
+internvl-hf = [
+    "accelerate",
+    "torch",
+    "transformers>=4.55.0",
+    "einops",
+    "timm"
+]
 ui = [
     "gradio>=5.23.3",
     "python-dotenv>=1.0.1",
@@ -54,21 +68,27 @@ cli = [
     "yaspin>=3.1.0",
 ]
 hud = [
-    "hud-python==0.4.19",
+    "hud-python==0.4.26",
 ]
 all = [
     # uitars requirements
     "mlx-vlm>=0.1.27; sys_platform == 'darwin'",
     "accelerate",
     "torch",
-    "transformers>=4.54.0",
+    "transformers>=4.55.0",
+    # internvl requirements,
+    "einops",
+    "timm",
+    # opencua requirements
+    "tiktoken>=0.11.0",
+    "blobfile>=3.0.0",
     # ui requirements
     "gradio>=5.23.3",
     "python-dotenv>=1.0.1",
     # cli requirements
     "yaspin>=3.1.0",
     # hud requirements
-    "hud-python==0.4.19",
+    "hud-python==0.4.26",
 ]
 
 [tool.uv]

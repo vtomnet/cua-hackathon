@@ -18,6 +18,15 @@ try:
     import json
     from typing import List, Dict, Any
     import dotenv
+    import base64
+    import time
+    import platform
+    from pathlib import Path
+    try:
+        from PIL import Image, ImageDraw
+        PIL_AVAILABLE = True
+    except Exception:
+        PIL_AVAILABLE = False
     from yaspin import yaspin
 except ImportError:
     if __name__ == "__main__":
@@ -249,6 +258,13 @@ Examples:
     )
 
     parser.add_argument(
+        "--predict-click",
+        dest="predict_click",
+        type=str,
+        help="Instruction for click prediction. If set, runs predict_click, draws crosshair on a fresh screenshot, saves and opens it."
+    )
+
+    parser.add_argument(
         "-c", "--cache",
         action="store_true",
         help="Tell the API to enable caching"
@@ -331,6 +347,7 @@ Examples:
         agent_kwargs = {
             "model": args.model,
             "tools": [computer],
+            "trust_remote_code": True, # needed for some local models (e.g., InternVL, OpenCUA)
             "verbosity": 20 if args.verbose else 30,  # DEBUG vs WARNING
             "max_retries": args.max_retries
         }
@@ -353,7 +370,79 @@ Examples:
         
         agent = ComputerAgent(**agent_kwargs)
         
-        # Start chat loop
+        # If predict-click mode is requested, run once and exit
+        if args.predict_click:
+            if not PIL_AVAILABLE:
+                print_colored("❌ Pillow (PIL) is required for --predict-click visualization. Install with: pip install pillow", Colors.RED, bold=True)
+                sys.exit(1)
+
+            instruction = args.predict_click
+            print_colored(f"Predicting click for: '{instruction}'", Colors.CYAN)
+
+            # Take a fresh screenshot FIRST
+            try:
+                img_bytes = await computer.interface.screenshot()
+            except Exception as e:
+                print_colored(f"❌ Failed to take screenshot: {e}", Colors.RED, bold=True)
+                sys.exit(1)
+
+            # Encode screenshot to base64 for predict_click
+            try:
+                image_b64 = base64.b64encode(img_bytes).decode("utf-8")
+            except Exception as e:
+                print_colored(f"❌ Failed to encode screenshot: {e}", Colors.RED, bold=True)
+                sys.exit(1)
+
+            try:
+                coords = await agent.predict_click(instruction, image_b64=image_b64)
+            except Exception as e:
+                print_colored(f"❌ predict_click failed: {e}", Colors.RED, bold=True)
+                sys.exit(1)
+
+            if not coords:
+                print_colored("⚠️  No coordinates returned.", Colors.YELLOW)
+                sys.exit(2)
+
+            x, y = coords
+            print_colored(f"✅ Predicted coordinates: ({x}, {y})", Colors.GREEN)
+
+            try:
+                from io import BytesIO
+                with Image.open(BytesIO(img_bytes)) as img:
+                    img = img.convert("RGB")
+                    draw = ImageDraw.Draw(img)
+                    # Draw crosshair
+                    size = 12
+                    color = (255, 0, 0)
+                    draw.line([(x - size, y), (x + size, y)], fill=color, width=3)
+                    draw.line([(x, y - size), (x, y + size)], fill=color, width=3)
+                    # Optional small circle
+                    r = 6
+                    draw.ellipse([(x - r, y - r), (x + r, y + r)], outline=color, width=2)
+
+                    out_path = Path.cwd() / f"predict_click_{int(time.time())}.png"
+                    img.save(out_path)
+                    print_colored(f"🖼️  Saved to {out_path}")
+
+                    # Open the image with default viewer
+                    try:
+                        system = platform.system().lower()
+                        if system == "windows":
+                            os.startfile(str(out_path))  # type: ignore[attr-defined]
+                        elif system == "darwin":
+                            os.system(f"open \"{out_path}\"")
+                        else:
+                            os.system(f"xdg-open \"{out_path}\"")
+                    except Exception:
+                        pass
+            except Exception as e:
+                print_colored(f"❌ Failed to render/save screenshot: {e}", Colors.RED, bold=True)
+                sys.exit(1)
+
+            # Done
+            sys.exit(0)
+
+        # Start chat loop (default interactive mode)
         await chat_loop(agent, args.model, container_name, args.prompt, args.usage)
 
 

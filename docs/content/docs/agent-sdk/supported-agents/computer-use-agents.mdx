@@ -1,5 +1,5 @@
 ---
-title: Computer-Use Models
+title: All‑in‑one CUA Models
 description: Models that support full computer-use agent capabilities with ComputerAgent.run()
 ---
 
@@ -36,19 +36,6 @@ async for _ in agent.run("Take a screenshot and describe what you see"):
     pass
 ```
 
-## UI-TARS 1.5
-
-Unified vision-language model for computer-use:
-
-- `huggingface-local/ByteDance-Seed/UI-TARS-1.5-7B`
-- `huggingface/ByteDance-Seed/UI-TARS-1.5-7B` (requires TGI endpoint)
-
-```python
-agent = ComputerAgent("huggingface-local/ByteDance-Seed/UI-TARS-1.5-7B", tools=[computer])
-async for _ in agent.run("Open the settings menu and change the theme to dark mode"):
-    pass
-```
-
 ## GLM-4.5V
 
 Zhipu AI's GLM-4.5V vision-language model with computer-use capabilities:
@@ -62,6 +49,32 @@ async for _ in agent.run("Click on the search bar and type 'hello world'"):
     pass
 ```
 
+## InternVL 3.5
+
+InternVL 3.5 family:
+- `huggingface-local/OpenGVLab/InternVL3_5-{1B,2B,4B,8B,...}`
+
+```python
+agent = ComputerAgent("huggingface-local/OpenGVLab/InternVL3_5-1B", tools=[computer])
+async for _ in agent.run("Open Firefox and navigate to github.com"):
+    pass
+```
+
+## UI-TARS 1.5
+
+Unified vision-language model for computer-use:
+
+- `huggingface-local/ByteDance-Seed/UI-TARS-1.5-7B`
+- `huggingface/ByteDance-Seed/UI-TARS-1.5-7B` (requires TGI endpoint)
+
+```python
+agent = ComputerAgent("huggingface-local/ByteDance-Seed/UI-TARS-1.5-7B", tools=[computer])
+async for _ in agent.run("Open the settings menu and change the theme to dark mode"):
+    pass
+```
+
 ---
+
+CUAs also support direct click prediction. See [Grounding Models](./grounding-models) for details on `predict_click()`.
 
 For details on agent loop behavior and usage, see [Agent Loops](../agent-loops).

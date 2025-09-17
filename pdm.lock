@@ -5,7 +5,7 @@
 groups = ["default", "dev", "docs", "examples", "test"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:b1d45970c173bdbdcb8481244545140483243394329caf266200aa5dfe5a9b8c"
+content_hash = "sha256:06657752e68d859160b5a9762b94979de4ed4bb8d2fc5b12b72b0a33a10d5a28"
 
 [[metadata.targets]]
 requires_python = ">=3.12,<3.14"
@@ -154,7 +154,7 @@ name = "anthropic"
 version = "0.67.0"
 requires_python = ">=3.8"
 summary = "The official Python library for the anthropic API"
-groups = ["default"]
+groups = ["default", "dev"]
 dependencies = [
     "anyio<5,>=3.5.0",
     "distro<2,>=1.7.0",
@@ -967,7 +967,6 @@ version = "4.0.0"
 requires_python = ">=3.9.0"
 summary = "HuggingFace community-driven open-source library of datasets"
 groups = ["dev"]
-marker = "sys_platform == \"darwin\""
 dependencies = [
     "dill<0.3.9,>=0.3.0",
     "filelock",
@@ -1035,7 +1034,6 @@ version = "0.3.8"
 requires_python = ">=3.8"
 summary = "serialize all of Python"
 groups = ["dev"]
-marker = "sys_platform == \"darwin\""
 files = [
     {file = "dill-0.3.8-py3-none-any.whl", hash = "sha256:c36ca9ffb54365bdd2f8eb3eff7d2a21237f8452b57ace88b1ac615b7e815bd7"},
     {file = "dill-0.3.8.tar.gz", hash = "sha256:3ebe3c479ad625c4553aca177444d89b486b1d84982eeacded644afc0cf797ca"},
@@ -1084,6 +1082,18 @@ groups = ["dev"]
 files = [
     {file = "docutils-0.22-py3-none-any.whl", hash = "sha256:4ed966a0e96a0477d852f7af31bdcb3adc049fbb35ccba358c2ea8a03287615e"},
     {file = "docutils-0.22.tar.gz", hash = "sha256:ba9d57750e92331ebe7c08a1bbf7a7f8143b86c476acd51528b042216a6aad0f"},
+]
+
+[[package]]
+name = "dotenv"
+version = "0.9.9"
+summary = "Deprecated package"
+groups = ["dev"]
+dependencies = [
+    "python-dotenv",
+]
+files = [
+    {file = "dotenv-0.9.9-py2.py3-none-any.whl", hash = "sha256:29cf74a087b31dafdb5a446b6d7e11cbce8ed2741540e2339c69fbef92c94ce9"},
 ]
 
 [[package]]
@@ -1195,31 +1205,6 @@ groups = ["dev"]
 files = [
     {file = "fastjsonschema-2.21.2-py3-none-any.whl", hash = "sha256:1c797122d0a86c5cace2e54bf4e819c36223b552017172f32c5c024a6b77e463"},
     {file = "fastjsonschema-2.21.2.tar.gz", hash = "sha256:b1eb43748041c880796cd077f1a07c3d94e93ae84bba5ed36800a33554ae05de"},
-]
-
-[[package]]
-name = "fastmcp"
-version = "2.12.0"
-requires_python = ">=3.10"
-summary = "The fast, Pythonic way to build MCP servers and clients."
-groups = ["dev"]
-dependencies = [
-    "authlib>=1.5.2",
-    "cyclopts>=3.0.0",
-    "exceptiongroup>=1.2.2",
-    "httpx>=0.28.1",
-    "mcp<2.0.0,>=1.12.4",
-    "openai>=1.95.1",
-    "openapi-core>=0.19.5",
-    "openapi-pydantic>=0.5.1",
-    "pydantic[email]>=2.11.7",
-    "pyperclip>=1.9.0",
-    "python-dotenv>=1.1.0",
-    "rich>=13.9.4",
-]
-files = [
-    {file = "fastmcp-2.12.0-py3-none-any.whl", hash = "sha256:f57d4a32b7761da3a4842ba8d70cf1b1a6c3791eda27fd3252780ecfa8f87cff"},
-    {file = "fastmcp-2.12.0.tar.gz", hash = "sha256:c7d6ec0fe3fa8d10061d08b40ebf6a4f916034a47ff3188dfd81c25e143ac18e"},
 ]
 
 [[package]]
@@ -1383,7 +1368,6 @@ extras = ["http"]
 requires_python = ">=3.8"
 summary = "File-system specification"
 groups = ["dev"]
-marker = "sys_platform == \"darwin\""
 dependencies = [
     "aiohttp!=4.0.0a0,!=4.0.0a1",
     "fsspec==2025.3.0",
@@ -1480,6 +1464,35 @@ dependencies = [
 files = [
     {file = "gradio_client-1.12.1-py3-none-any.whl", hash = "sha256:37c0bcd0e6b3794b2b2e0b5039696d6962d8125bdb96960ad1b79412326b1664"},
     {file = "gradio_client-1.12.1.tar.gz", hash = "sha256:64ae7b1d951482194e3a2f8d20cd3fbdaaa13418ee988445d3c9edb28da50ea2"},
+]
+
+[[package]]
+name = "greenlet"
+version = "3.2.4"
+requires_python = ">=3.9"
+summary = "Lightweight in-process concurrent programming"
+groups = ["dev"]
+marker = "(platform_machine == \"win32\" or platform_machine == \"WIN32\" or platform_machine == \"AMD64\" or platform_machine == \"amd64\" or platform_machine == \"x86_64\" or platform_machine == \"ppc64le\" or platform_machine == \"aarch64\") and python_version < \"3.14\""
+files = [
+    {file = "greenlet-3.2.4-cp312-cp312-macosx_11_0_universal2.whl", hash = "sha256:3b67ca49f54cede0186854a008109d6ee71f66bd57bb36abd6d0a0267b540cdd"},
+    {file = "greenlet-3.2.4-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:ddf9164e7a5b08e9d22511526865780a576f19ddd00d62f8a665949327fde8bb"},
+    {file = "greenlet-3.2.4-cp312-cp312-manylinux2014_ppc64le.manylinux_2_17_ppc64le.whl", hash = "sha256:f28588772bb5fb869a8eb331374ec06f24a83a9c25bfa1f38b6993afe9c1e968"},
+    {file = "greenlet-3.2.4-cp312-cp312-manylinux2014_s390x.manylinux_2_17_s390x.whl", hash = "sha256:5c9320971821a7cb77cfab8d956fa8e39cd07ca44b6070db358ceb7f8797c8c9"},
+    {file = "greenlet-3.2.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:c60a6d84229b271d44b70fb6e5fa23781abb5d742af7b808ae3f6efd7c9c60f6"},
+    {file = "greenlet-3.2.4-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:3b3812d8d0c9579967815af437d96623f45c0f2ae5f04e366de62a12d83a8fb0"},
+    {file = "greenlet-3.2.4-cp312-cp312-musllinux_1_1_aarch64.whl", hash = "sha256:abbf57b5a870d30c4675928c37278493044d7c14378350b3aa5d484fa65575f0"},
+    {file = "greenlet-3.2.4-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:20fb936b4652b6e307b8f347665e2c615540d4b42b3b4c8a321d8286da7e520f"},
+    {file = "greenlet-3.2.4-cp312-cp312-win_amd64.whl", hash = "sha256:a7d4e128405eea3814a12cc2605e0e6aedb4035bf32697f72deca74de4105e02"},
+    {file = "greenlet-3.2.4-cp313-cp313-macosx_11_0_universal2.whl", hash = "sha256:1a921e542453fe531144e91e1feedf12e07351b1cf6c9e8a3325ea600a715a31"},
+    {file = "greenlet-3.2.4-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:cd3c8e693bff0fff6ba55f140bf390fa92c994083f838fece0f63be121334945"},
+    {file = "greenlet-3.2.4-cp313-cp313-manylinux2014_ppc64le.manylinux_2_17_ppc64le.whl", hash = "sha256:710638eb93b1fa52823aa91bf75326f9ecdfd5e0466f00789246a5280f4ba0fc"},
+    {file = "greenlet-3.2.4-cp313-cp313-manylinux2014_s390x.manylinux_2_17_s390x.whl", hash = "sha256:c5111ccdc9c88f423426df3fd1811bfc40ed66264d35aa373420a34377efc98a"},
+    {file = "greenlet-3.2.4-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:d76383238584e9711e20ebe14db6c88ddcedc1829a9ad31a584389463b5aa504"},
+    {file = "greenlet-3.2.4-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:23768528f2911bcd7e475210822ffb5254ed10d71f4028387e5a99b4c6699671"},
+    {file = "greenlet-3.2.4-cp313-cp313-musllinux_1_1_aarch64.whl", hash = "sha256:00fadb3fedccc447f517ee0d3fd8fe49eae949e1cd0f6a611818f4f6fb7dc83b"},
+    {file = "greenlet-3.2.4-cp313-cp313-musllinux_1_1_x86_64.whl", hash = "sha256:d25c5091190f2dc0eaa3f950252122edbbadbb682aa7b1ef2f8af0f8c0afefae"},
+    {file = "greenlet-3.2.4-cp313-cp313-win_amd64.whl", hash = "sha256:554b03b6e73aaabec3745364d6239e9e012d64c68ccd0b8430c64ccc14939a8b"},
+    {file = "greenlet-3.2.4.tar.gz", hash = "sha256:0dca0d95ff849f9a364385f36ab49f50065d76964944638be9691e1832e9f86d"},
 ]
 
 [[package]]
@@ -1620,6 +1633,31 @@ files = [
 ]
 
 [[package]]
+name = "hud-fastmcp-python-sdk"
+version = "0.1.2"
+requires_python = ">=3.10"
+summary = "The fast, Pythonic way to build MCP servers and clients."
+groups = ["dev"]
+dependencies = [
+    "authlib>=1.5.2",
+    "cyclopts>=3.0.0",
+    "exceptiongroup>=1.2.2",
+    "httpx>=0.28.1",
+    "hud-mcp-python-sdk>=3.13.2",
+    "openai>=1.95.1",
+    "openapi-core>=0.19.5",
+    "openapi-pydantic>=0.5.1",
+    "pydantic[email]>=2.11.7",
+    "pyperclip>=1.9.0",
+    "python-dotenv>=1.1.0",
+    "rich>=13.9.4",
+]
+files = [
+    {file = "hud_fastmcp_python_sdk-0.1.2-py3-none-any.whl", hash = "sha256:005bedb36e9e9ee5bb0971ba9c228113a4ccbaec407e560ba528477ebfffa795"},
+    {file = "hud_fastmcp_python_sdk-0.1.2.tar.gz", hash = "sha256:cbd6301810b78f2e1acb17fa10c26eaf99bd7afed0dcbd34ae67d45679c15197"},
+]
+
+[[package]]
 name = "hud-mcp-python-sdk"
 version = "3.13.2"
 requires_python = ">=3.10"
@@ -1644,24 +1682,47 @@ files = [
 ]
 
 [[package]]
+name = "hud-mcp-use-python-sdk"
+version = "2.3.17"
+requires_python = ">=3.11"
+summary = "MCP Library for LLMs"
+groups = ["dev"]
+dependencies = [
+    "aiohttp>=3.9.0",
+    "hud-mcp-python-sdk>=3.13.2",
+    "jsonschema-pydantic>=0.1.0",
+    "langchain>=0.1.0",
+    "posthog>=4.8.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "scarf-sdk>=0.1.0",
+    "websockets>=12.0",
+]
+files = [
+    {file = "hud_mcp_use_python_sdk-2.3.17-py3-none-any.whl", hash = "sha256:f31217dae6a937a67e681493eb3f15e945207477a46414907d2b7854faf60701"},
+    {file = "hud_mcp_use_python_sdk-2.3.17.tar.gz", hash = "sha256:df7e599c74758b13a2c4d78591a8d5fe46745e116adfc88cddc80261886c5a8a"},
+]
+
+[[package]]
 name = "hud-python"
-version = "0.4.12"
+version = "0.4.26"
 requires_python = "<3.14,>=3.11"
 summary = "SDK for the HUD platform."
 groups = ["dev"]
 dependencies = [
-    "fastmcp>=2.11.2",
     "httpx<1,>=0.23.0",
-    "hud-mcp-python-sdk>=0.1.0",
-    "mcp>=1.13.1",
+    "hud-fastmcp-python-sdk>=0.1.2",
+    "hud-mcp-python-sdk>=3.13.2",
+    "hud-mcp-use-python-sdk>=2.3.16",
     "opentelemetry-api>=1.34.1",
     "opentelemetry-exporter-otlp-proto-http>=1.34.1",
     "opentelemetry-instrumentation-mcp>=0.44.1",
     "opentelemetry-sdk>=1.34.1",
     "pathspec>=0.12.1",
+    "prompt-toolkit==3.0.51",
     "pydantic-settings<3,>=2",
     "pydantic<3,>=2",
-    "questionary>=1.10.0",
+    "questionary==2.1.0",
     "rich>=13.0.0",
     "toml>=0.10.2",
     "typer>=0.9.0",
@@ -1669,8 +1730,36 @@ dependencies = [
     "wrapt>=1.14.0",
 ]
 files = [
-    {file = "hud_python-0.4.12-py3-none-any.whl", hash = "sha256:c16bbe17102710087194d8f09f5ccd028a90ce55dfdf722ce6a5bb9a693bd2ca"},
-    {file = "hud_python-0.4.12.tar.gz", hash = "sha256:316941f1e7a749f4fdcb83d4501a29f4a0541aaa63570e80f0b3c0db03f48abd"},
+    {file = "hud_python-0.4.26-py3-none-any.whl", hash = "sha256:c1cb708a65b7dffb3432824c2267437796f502b6f1c748709d6e4d46f135ec34"},
+    {file = "hud_python-0.4.26.tar.gz", hash = "sha256:2a2eaa04b6cc7e70fb5ad2d89a38b3eba1968544160dd592c2efa907685b8a14"},
+]
+
+[[package]]
+name = "hud-python"
+version = "0.4.26"
+extras = ["agent"]
+requires_python = "<3.14,>=3.11"
+summary = "SDK for the HUD platform."
+groups = ["dev"]
+dependencies = [
+    "anthropic",
+    "datasets>=2.14.0",
+    "dotenv>=0.9.9",
+    "hud-python==0.4.26",
+    "ipykernel",
+    "ipython<9",
+    "jupyter-client",
+    "jupyter-core",
+    "langchain",
+    "langchain-anthropic",
+    "langchain-openai",
+    "numpy>=1.24.0",
+    "openai",
+    "pillow>=11.1.0",
+]
+files = [
+    {file = "hud_python-0.4.26-py3-none-any.whl", hash = "sha256:c1cb708a65b7dffb3432824c2267437796f502b6f1c748709d6e4d46f135ec34"},
+    {file = "hud_python-0.4.26.tar.gz", hash = "sha256:2a2eaa04b6cc7e70fb5ad2d89a38b3eba1968544160dd592c2efa907685b8a14"},
 ]
 
 [[package]]
@@ -1774,14 +1863,14 @@ files = [
 
 [[package]]
 name = "ipython"
-version = "9.5.0"
-requires_python = ">=3.11"
+version = "8.37.0"
+requires_python = ">=3.10"
 summary = "IPython: Productive Interactive Computing"
 groups = ["dev"]
 dependencies = [
     "colorama; sys_platform == \"win32\"",
     "decorator",
-    "ipython-pygments-lexers",
+    "exceptiongroup; python_version < \"3.11\"",
     "jedi>=0.16",
     "matplotlib-inline",
     "pexpect>4.3; sys_platform != \"win32\" and sys_platform != \"emscripten\"",
@@ -1792,22 +1881,8 @@ dependencies = [
     "typing-extensions>=4.6; python_version < \"3.12\"",
 ]
 files = [
-    {file = "ipython-9.5.0-py3-none-any.whl", hash = "sha256:88369ffa1d5817d609120daa523a6da06d02518e582347c29f8451732a9c5e72"},
-    {file = "ipython-9.5.0.tar.gz", hash = "sha256:129c44b941fe6d9b82d36fc7a7c18127ddb1d6f02f78f867f402e2e3adde3113"},
-]
-
-[[package]]
-name = "ipython-pygments-lexers"
-version = "1.1.1"
-requires_python = ">=3.8"
-summary = "Defines a variety of Pygments lexers for highlighting IPython code."
-groups = ["dev"]
-dependencies = [
-    "pygments",
-]
-files = [
-    {file = "ipython_pygments_lexers-1.1.1-py3-none-any.whl", hash = "sha256:a9462224a505ade19a605f71f8fa63c2048833ce50abc86768a0d81d876dc81c"},
-    {file = "ipython_pygments_lexers-1.1.1.tar.gz", hash = "sha256:09c0138009e56b6854f9535736f4171d855c8c08a563a0dcd8022f78355c7e81"},
+    {file = "ipython-8.37.0-py3-none-any.whl", hash = "sha256:ed87326596b878932dbcb171e3e698845434d8c61b8d8cd474bf663041a9dcf2"},
+    {file = "ipython-8.37.0.tar.gz", hash = "sha256:ca815841e1a41a1e6b73a0b08f3038af9b2252564d01fc405356d34033012216"},
 ]
 
 [[package]]
@@ -1930,6 +2005,20 @@ files = [
 ]
 
 [[package]]
+name = "jsonpatch"
+version = "1.33"
+requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, !=3.6.*"
+summary = "Apply JSON-Patches (RFC 6902) "
+groups = ["dev"]
+dependencies = [
+    "jsonpointer>=1.9",
+]
+files = [
+    {file = "jsonpatch-1.33-py2.py3-none-any.whl", hash = "sha256:0ae28c0cd062bbd8b8ecc26d7d164fbbea9652a1a3693f3b956c1eae5145dade"},
+    {file = "jsonpatch-1.33.tar.gz", hash = "sha256:9fcd4009c41e6d12348b4a0ff2563ba56a2923a7dfee731d004e212e1ee5030c"},
+]
+
+[[package]]
 name = "jsonpointer"
 version = "3.0.0"
 requires_python = ">=3.7"
@@ -1972,6 +2061,19 @@ dependencies = [
 files = [
     {file = "jsonschema_path-0.3.4-py3-none-any.whl", hash = "sha256:f502191fdc2b22050f9a81c9237be9d27145b9001c55842bece5e94e382e52f8"},
     {file = "jsonschema_path-0.3.4.tar.gz", hash = "sha256:8365356039f16cc65fddffafda5f58766e34bebab7d6d105616ab52bc4297001"},
+]
+
+[[package]]
+name = "jsonschema-pydantic"
+version = "0.6"
+summary = "Convert JSON Schemas to Pydantic models"
+groups = ["dev"]
+dependencies = [
+    "pydantic>=1.10.0",
+]
+files = [
+    {file = "jsonschema_pydantic-0.6-py3-none-any.whl", hash = "sha256:98385ed53ab87598665956b43756746350e2b60411a38381231f9703d36e40eb"},
+    {file = "jsonschema_pydantic-0.6.tar.gz", hash = "sha256:6069a8929a333a7c7ea8510e9de50f062e747e655e6ba106da5af1981f995270"},
 ]
 
 [[package]]
@@ -2286,6 +2388,113 @@ files = [
     {file = "kiwisolver-1.4.9-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:dba5ee5d3981160c28d5490f0d1b7ed730c22470ff7f6cc26cfcfaacb9896a07"},
     {file = "kiwisolver-1.4.9-cp313-cp313t-win_arm64.whl", hash = "sha256:0749fd8f4218ad2e851e11cc4dc05c7cbc0cbc4267bdfdb31782e65aace4ee9c"},
     {file = "kiwisolver-1.4.9.tar.gz", hash = "sha256:c3b22c26c6fd6811b0ae8363b95ca8ce4ea3c202d3d0975b2914310ceb1bcc4d"},
+]
+
+[[package]]
+name = "langchain"
+version = "0.3.27"
+requires_python = "<4.0,>=3.9"
+summary = "Building applications with LLMs through composability"
+groups = ["dev"]
+dependencies = [
+    "PyYAML>=5.3",
+    "SQLAlchemy<3,>=1.4",
+    "async-timeout<5.0.0,>=4.0.0; python_version < \"3.11\"",
+    "langchain-core<1.0.0,>=0.3.72",
+    "langchain-text-splitters<1.0.0,>=0.3.9",
+    "langsmith>=0.1.17",
+    "pydantic<3.0.0,>=2.7.4",
+    "requests<3,>=2",
+]
+files = [
+    {file = "langchain-0.3.27-py3-none-any.whl", hash = "sha256:7b20c4f338826acb148d885b20a73a16e410ede9ee4f19bb02011852d5f98798"},
+    {file = "langchain-0.3.27.tar.gz", hash = "sha256:aa6f1e6274ff055d0fd36254176770f356ed0a8994297d1df47df341953cec62"},
+]
+
+[[package]]
+name = "langchain-anthropic"
+version = "0.3.20"
+requires_python = ">=3.9"
+summary = "An integration package connecting Anthropic and LangChain"
+groups = ["dev"]
+dependencies = [
+    "anthropic<1,>=0.67.0",
+    "langchain-core<1.0.0,>=0.3.76",
+    "pydantic<3.0.0,>=2.7.4",
+]
+files = [
+    {file = "langchain_anthropic-0.3.20-py3-none-any.whl", hash = "sha256:0b79aad346781d63af797af60b5aa9db7f95174a382712ee8fb2ad42573e2560"},
+    {file = "langchain_anthropic-0.3.20.tar.gz", hash = "sha256:8ad996817a051db1dbaa1b76d710ad2588b93b9bf3c4ac7ecf66c1d480f921fc"},
+]
+
+[[package]]
+name = "langchain-core"
+version = "0.3.76"
+requires_python = ">=3.9"
+summary = "Building applications with LLMs through composability"
+groups = ["dev"]
+dependencies = [
+    "PyYAML>=5.3",
+    "jsonpatch<2.0,>=1.33",
+    "langsmith>=0.3.45",
+    "packaging>=23.2",
+    "pydantic>=2.7.4",
+    "tenacity!=8.4.0,<10.0.0,>=8.1.0",
+    "typing-extensions>=4.7",
+]
+files = [
+    {file = "langchain_core-0.3.76-py3-none-any.whl", hash = "sha256:46e0eb48c7ac532432d51f8ca1ece1804c82afe9ae3dcf027b867edadf82b3ec"},
+    {file = "langchain_core-0.3.76.tar.gz", hash = "sha256:71136a122dd1abae2c289c5809d035cf12b5f2bb682d8a4c1078cd94feae7419"},
+]
+
+[[package]]
+name = "langchain-openai"
+version = "0.3.32"
+requires_python = ">=3.9"
+summary = "An integration package connecting OpenAI and LangChain"
+groups = ["dev"]
+dependencies = [
+    "langchain-core<1.0.0,>=0.3.74",
+    "openai<2.0.0,>=1.99.9",
+    "tiktoken<1,>=0.7",
+]
+files = [
+    {file = "langchain_openai-0.3.32-py3-none-any.whl", hash = "sha256:3354f76822f7cc76d8069831fe2a77f9bc7ff3b4f13af788bd94e4c6e853b400"},
+    {file = "langchain_openai-0.3.32.tar.gz", hash = "sha256:782ad669bd1bdb964456d8882c5178717adcfceecb482cc20005f770e43d346d"},
+]
+
+[[package]]
+name = "langchain-text-splitters"
+version = "0.3.11"
+requires_python = ">=3.9"
+summary = "LangChain text splitting utilities"
+groups = ["dev"]
+dependencies = [
+    "langchain-core<2.0.0,>=0.3.75",
+]
+files = [
+    {file = "langchain_text_splitters-0.3.11-py3-none-any.whl", hash = "sha256:cf079131166a487f1372c8ab5d0bfaa6c0a4291733d9c43a34a16ac9bcd6a393"},
+    {file = "langchain_text_splitters-0.3.11.tar.gz", hash = "sha256:7a50a04ada9a133bbabb80731df7f6ddac51bc9f1b9cab7fa09304d71d38a6cc"},
+]
+
+[[package]]
+name = "langsmith"
+version = "0.4.27"
+requires_python = ">=3.9"
+summary = "Client library to connect to the LangSmith LLM Tracing and Evaluation Platform."
+groups = ["dev"]
+dependencies = [
+    "httpx<1,>=0.23.0",
+    "orjson>=3.9.14; platform_python_implementation != \"PyPy\"",
+    "packaging>=23.2",
+    "pydantic<3,>=1",
+    "requests-toolbelt>=1.0.0",
+    "requests>=2.0.0",
+    "zstandard>=0.23.0",
+]
+files = [
+    {file = "langsmith-0.4.27-py3-none-any.whl", hash = "sha256:23708e6478d1c74ac0e428bbc92df6704993e34305fb62a0c64d2fefc35bd67f"},
+    {file = "langsmith-0.4.27.tar.gz", hash = "sha256:6e8bbc425797202952d4e849431e6276e7985b44536ec0582eb96eaf9129c393"},
 ]
 
 [[package]]
@@ -2829,7 +3038,6 @@ version = "0.70.16"
 requires_python = ">=3.8"
 summary = "better multiprocessing and multithreading in Python"
 groups = ["dev"]
-marker = "sys_platform == \"darwin\""
 dependencies = [
     "dill>=0.3.8",
 ]
@@ -3845,7 +4053,7 @@ files = [
 
 [[package]]
 name = "prompt-toolkit"
-version = "3.0.52"
+version = "3.0.51"
 requires_python = ">=3.8"
 summary = "Library for building powerful interactive command lines in Python"
 groups = ["dev"]
@@ -3853,8 +4061,8 @@ dependencies = [
     "wcwidth",
 ]
 files = [
-    {file = "prompt_toolkit-3.0.52-py3-none-any.whl", hash = "sha256:9aac639a3bbd33284347de5ad8d68ecc044b91a762dc39b7c21095fcd6a19955"},
-    {file = "prompt_toolkit-3.0.52.tar.gz", hash = "sha256:28cde192929c8e7321de85de1ddbe736f1375148b02f2e17edd840042b1be855"},
+    {file = "prompt_toolkit-3.0.51-py3-none-any.whl", hash = "sha256:52742911fde84e2d423e2f9a4cf1de7d7ac4e51958f648d9540e0fb8db077b07"},
+    {file = "prompt_toolkit-3.0.51.tar.gz", hash = "sha256:931a162e3b27fc90c86f1b48bb1fb2c528c2761475e57c9c06de13311c7b54ed"},
 ]
 
 [[package]]
@@ -3986,7 +4194,6 @@ version = "21.0.0"
 requires_python = ">=3.9"
 summary = "Python library for Apache Arrow"
 groups = ["dev"]
-marker = "sys_platform == \"darwin\""
 files = [
     {file = "pyarrow-21.0.0-cp312-cp312-macosx_12_0_arm64.whl", hash = "sha256:3a302f0e0963db37e0a24a70c56cf91a4faa0bca51c23812279ca2e23481fccd"},
     {file = "pyarrow-21.0.0-cp312-cp312-macosx_12_0_x86_64.whl", hash = "sha256:b6b27cf01e243871390474a211a7922bfbe3bda21e39bc9160daf0da3fe48876"},
@@ -4700,16 +4907,16 @@ files = [
 
 [[package]]
 name = "questionary"
-version = "2.1.1"
-requires_python = ">=3.9"
+version = "2.1.0"
+requires_python = ">=3.8"
 summary = "Python library to build pretty command line user prompts ⭐️"
 groups = ["dev"]
 dependencies = [
     "prompt-toolkit<4.0,>=2.0",
 ]
 files = [
-    {file = "questionary-2.1.1-py3-none-any.whl", hash = "sha256:a51af13f345f1cdea62347589fbb6df3b290306ab8930713bfae4d475a7d4a59"},
-    {file = "questionary-2.1.1.tar.gz", hash = "sha256:3d7e980292bb0107abaa79c68dd3eee3c561b83a0f89ae482860b181c8bd412d"},
+    {file = "questionary-2.1.0-py3-none-any.whl", hash = "sha256:44174d237b68bc828e4878c763a9ad6790ee61990e0ae72927694ead57bab8ec"},
+    {file = "questionary-2.1.0.tar.gz", hash = "sha256:6302cdd645b19667d8f6e6634774e9538bfcd1aad9be287e743d96cacaf95587"},
 ]
 
 [[package]]
@@ -4781,6 +4988,20 @@ dependencies = [
 files = [
     {file = "requests-2.32.5-py3-none-any.whl", hash = "sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6"},
     {file = "requests-2.32.5.tar.gz", hash = "sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf"},
+]
+
+[[package]]
+name = "requests-toolbelt"
+version = "1.0.0"
+requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+summary = "A utility belt for advanced users of python-requests"
+groups = ["dev"]
+dependencies = [
+    "requests<3.0.0,>=2.0.1",
+]
+files = [
+    {file = "requests-toolbelt-1.0.0.tar.gz", hash = "sha256:7681a0a3d047012b5bdc0ee37d7f8f07ebe76ab08caeccfc3921ce23c88d5bc6"},
+    {file = "requests_toolbelt-1.0.0-py2.py3-none-any.whl", hash = "sha256:cccfdd665f0a24fcf4726e690f65639d272bb0637b9b92dfd91a5568ccf6bd06"},
 ]
 
 [[package]]
@@ -4982,6 +5203,20 @@ files = [
     {file = "safetensors-0.6.2-cp38-abi3-win32.whl", hash = "sha256:cab75ca7c064d3911411461151cb69380c9225798a20e712b102edda2542ddb1"},
     {file = "safetensors-0.6.2-cp38-abi3-win_amd64.whl", hash = "sha256:c7b214870df923cbc1593c3faee16bec59ea462758699bd3fee399d00aac072c"},
     {file = "safetensors-0.6.2.tar.gz", hash = "sha256:43ff2aa0e6fa2dc3ea5524ac7ad93a9839256b8703761e76e2d0b2a3fa4f15d9"},
+]
+
+[[package]]
+name = "scarf-sdk"
+version = "0.1.2"
+requires_python = ">=3.7"
+summary = "Python bindings for Scarf telemetry"
+groups = ["dev"]
+dependencies = [
+    "requests>=2.25.0",
+]
+files = [
+    {file = "scarf_sdk-0.1.2-py3-none-any.whl", hash = "sha256:d3768ecb9e484965f6956a05c982c52b77cdcd576284107dbeed715f5dffba36"},
+    {file = "scarf_sdk-0.1.2.tar.gz", hash = "sha256:d79e157b440a488da1fed47b8917fdbc794120ca8306e994062f8c7e787ac163"},
 ]
 
 [[package]]
@@ -5191,6 +5426,38 @@ files = [
 ]
 
 [[package]]
+name = "sqlalchemy"
+version = "2.0.43"
+requires_python = ">=3.7"
+summary = "Database Abstraction Library"
+groups = ["dev"]
+dependencies = [
+    "greenlet>=1; (platform_machine == \"win32\" or platform_machine == \"WIN32\" or platform_machine == \"AMD64\" or platform_machine == \"amd64\" or platform_machine == \"x86_64\" or platform_machine == \"ppc64le\" or platform_machine == \"aarch64\") and python_version < \"3.14\"",
+    "importlib-metadata; python_version < \"3.8\"",
+    "typing-extensions>=4.6.0",
+]
+files = [
+    {file = "sqlalchemy-2.0.43-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:20d81fc2736509d7a2bd33292e489b056cbae543661bb7de7ce9f1c0cd6e7f24"},
+    {file = "sqlalchemy-2.0.43-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:25b9fc27650ff5a2c9d490c13c14906b918b0de1f8fcbb4c992712d8caf40e83"},
+    {file = "sqlalchemy-2.0.43-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6772e3ca8a43a65a37c88e2f3e2adfd511b0b1da37ef11ed78dea16aeae85bd9"},
+    {file = "sqlalchemy-2.0.43-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1a113da919c25f7f641ffbd07fbc9077abd4b3b75097c888ab818f962707eb48"},
+    {file = "sqlalchemy-2.0.43-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:4286a1139f14b7d70141c67a8ae1582fc2b69105f1b09d9573494eb4bb4b2687"},
+    {file = "sqlalchemy-2.0.43-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:529064085be2f4d8a6e5fab12d36ad44f1909a18848fcfbdb59cc6d4bbe48efe"},
+    {file = "sqlalchemy-2.0.43-cp312-cp312-win32.whl", hash = "sha256:b535d35dea8bbb8195e7e2b40059e2253acb2b7579b73c1b432a35363694641d"},
+    {file = "sqlalchemy-2.0.43-cp312-cp312-win_amd64.whl", hash = "sha256:1c6d85327ca688dbae7e2b06d7d84cfe4f3fffa5b5f9e21bb6ce9d0e1a0e0e0a"},
+    {file = "sqlalchemy-2.0.43-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:e7c08f57f75a2bb62d7ee80a89686a5e5669f199235c6d1dac75cd59374091c3"},
+    {file = "sqlalchemy-2.0.43-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:14111d22c29efad445cd5021a70a8b42f7d9152d8ba7f73304c4d82460946aaa"},
+    {file = "sqlalchemy-2.0.43-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:21b27b56eb2f82653168cefe6cb8e970cdaf4f3a6cb2c5e3c3c1cf3158968ff9"},
+    {file = "sqlalchemy-2.0.43-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9c5a9da957c56e43d72126a3f5845603da00e0293720b03bde0aacffcf2dc04f"},
+    {file = "sqlalchemy-2.0.43-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:5d79f9fdc9584ec83d1b3c75e9f4595c49017f5594fee1a2217117647225d738"},
+    {file = "sqlalchemy-2.0.43-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:9df7126fd9db49e3a5a3999442cc67e9ee8971f3cb9644250107d7296cb2a164"},
+    {file = "sqlalchemy-2.0.43-cp313-cp313-win32.whl", hash = "sha256:7f1ac7828857fcedb0361b48b9ac4821469f7694089d15550bbcf9ab22564a1d"},
+    {file = "sqlalchemy-2.0.43-cp313-cp313-win_amd64.whl", hash = "sha256:971ba928fcde01869361f504fcff3b7143b47d30de188b11c6357c0505824197"},
+    {file = "sqlalchemy-2.0.43-py3-none-any.whl", hash = "sha256:1681c21dd2ccee222c2fe0bef671d1aef7c504087c9c4e800371cfcc8ac966fc"},
+    {file = "sqlalchemy-2.0.43.tar.gz", hash = "sha256:788bfcef6787a7764169cfe9859fe425bf44559619e1d9f56f5bddf2ebf6f417"},
+]
+
+[[package]]
 name = "sse-starlette"
 version = "3.0.2"
 requires_python = ">=3.9"
@@ -5268,6 +5535,17 @@ dependencies = [
 files = [
     {file = "sympy-1.14.0-py3-none-any.whl", hash = "sha256:e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5"},
     {file = "sympy-1.14.0.tar.gz", hash = "sha256:d3d3fe8df1e5a0b42f0e7bdf50541697dbe7d23746e894990c030e2b05e72517"},
+]
+
+[[package]]
+name = "tenacity"
+version = "9.1.2"
+requires_python = ">=3.9"
+summary = "Retry code until it succeeds"
+groups = ["dev"]
+files = [
+    {file = "tenacity-9.1.2-py3-none-any.whl", hash = "sha256:f77bf36710d8b73a50b2dd155c97b870017ad21afe6ab300326b0371b3b05138"},
+    {file = "tenacity-9.1.2.tar.gz", hash = "sha256:1169d376c297e7de388d18b4481760d478b0e99a777cad3a9c86e556f4b697cb"},
 ]
 
 [[package]]
@@ -5975,7 +6253,6 @@ version = "3.5.0"
 requires_python = ">=3.7"
 summary = "Python binding for xxHash"
 groups = ["dev"]
-marker = "sys_platform == \"darwin\""
 files = [
     {file = "xxhash-3.5.0-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:14470ace8bd3b5d51318782cd94e6f94431974f16cb3b8dc15d52f3b69df8e00"},
     {file = "xxhash-3.5.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:59aa1203de1cb96dbeab595ded0ad0c0056bb2245ae11fac11c0ceea861382b9"},
@@ -6100,4 +6377,48 @@ groups = ["dev"]
 files = [
     {file = "zipp-3.23.0-py3-none-any.whl", hash = "sha256:071652d6115ed432f5ce1d34c336c0adfd6a884660d1e9712a256d3d3bd4b14e"},
     {file = "zipp-3.23.0.tar.gz", hash = "sha256:a07157588a12518c9d4034df3fbbee09c814741a33ff63c05fa29d26a2404166"},
+]
+
+[[package]]
+name = "zstandard"
+version = "0.24.0"
+requires_python = ">=3.9"
+summary = "Zstandard bindings for Python"
+groups = ["dev"]
+files = [
+    {file = "zstandard-0.24.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:a2bda8f2790add22773ee7a4e43c90ea05598bffc94c21c40ae0a9000b0133c3"},
+    {file = "zstandard-0.24.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:cc76de75300f65b8eb574d855c12518dc25a075dadb41dd18f6322bda3fe15d5"},
+    {file = "zstandard-0.24.0-cp312-cp312-manylinux2010_i686.manylinux2014_i686.manylinux_2_12_i686.manylinux_2_17_i686.whl", hash = "sha256:d2b3b4bda1a025b10fe0269369475f420177f2cb06e0f9d32c95b4873c9f80b8"},
+    {file = "zstandard-0.24.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:9b84c6c210684286e504022d11ec294d2b7922d66c823e87575d8b23eba7c81f"},
+    {file = "zstandard-0.24.0-cp312-cp312-manylinux2014_ppc64le.manylinux_2_17_ppc64le.whl", hash = "sha256:c59740682a686bf835a1a4d8d0ed1eefe31ac07f1c5a7ed5f2e72cf577692b00"},
+    {file = "zstandard-0.24.0-cp312-cp312-manylinux2014_s390x.manylinux_2_17_s390x.whl", hash = "sha256:6324fde5cf5120fbf6541d5ff3c86011ec056e8d0f915d8e7822926a5377193a"},
+    {file = "zstandard-0.24.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:51a86bd963de3f36688553926a84e550d45d7f9745bd1947d79472eca27fcc75"},
+    {file = "zstandard-0.24.0-cp312-cp312-musllinux_1_1_aarch64.whl", hash = "sha256:d82ac87017b734f2fb70ff93818c66f0ad2c3810f61040f077ed38d924e19980"},
+    {file = "zstandard-0.24.0-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:92ea7855d5bcfb386c34557516c73753435fb2d4a014e2c9343b5f5ba148b5d8"},
+    {file = "zstandard-0.24.0-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:3adb4b5414febf074800d264ddf69ecade8c658837a83a19e8ab820e924c9933"},
+    {file = "zstandard-0.24.0-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:6374feaf347e6b83ec13cc5dcfa70076f06d8f7ecd46cc71d58fac798ff08b76"},
+    {file = "zstandard-0.24.0-cp312-cp312-musllinux_1_2_ppc64le.whl", hash = "sha256:13fc548e214df08d896ee5f29e1f91ee35db14f733fef8eabea8dca6e451d1e2"},
+    {file = "zstandard-0.24.0-cp312-cp312-musllinux_1_2_s390x.whl", hash = "sha256:0a416814608610abf5488889c74e43ffa0343ca6cf43957c6b6ec526212422da"},
+    {file = "zstandard-0.24.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:0d66da2649bb0af4471699aeb7a83d6f59ae30236fb9f6b5d20fb618ef6c6777"},
+    {file = "zstandard-0.24.0-cp312-cp312-win32.whl", hash = "sha256:ff19efaa33e7f136fe95f9bbcc90ab7fb60648453b03f95d1de3ab6997de0f32"},
+    {file = "zstandard-0.24.0-cp312-cp312-win_amd64.whl", hash = "sha256:bc05f8a875eb651d1cc62e12a4a0e6afa5cd0cc231381adb830d2e9c196ea895"},
+    {file = "zstandard-0.24.0-cp312-cp312-win_arm64.whl", hash = "sha256:b04c94718f7a8ed7cdd01b162b6caa1954b3c9d486f00ecbbd300f149d2b2606"},
+    {file = "zstandard-0.24.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:e4ebb000c0fe24a6d0f3534b6256844d9dbf042fdf003efe5cf40690cf4e0f3e"},
+    {file = "zstandard-0.24.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:498f88f5109666c19531f0243a90d2fdd2252839cd6c8cc6e9213a3446670fa8"},
+    {file = "zstandard-0.24.0-cp313-cp313-manylinux2010_i686.manylinux2014_i686.manylinux_2_12_i686.manylinux_2_17_i686.whl", hash = "sha256:0a9e95ceb180ccd12a8b3437bac7e8a8a089c9094e39522900a8917745542184"},
+    {file = "zstandard-0.24.0-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:bcf69e0bcddbf2adcfafc1a7e864edcc204dd8171756d3a8f3340f6f6cc87b7b"},
+    {file = "zstandard-0.24.0-cp313-cp313-manylinux2014_ppc64le.manylinux_2_17_ppc64le.whl", hash = "sha256:10e284748a7e7fbe2815ca62a9d6e84497d34cfdd0143fa9e8e208efa808d7c4"},
+    {file = "zstandard-0.24.0-cp313-cp313-manylinux2014_s390x.manylinux_2_17_s390x.whl", hash = "sha256:1bda8a85e5b9d5e73af2e61b23609a8cc1598c1b3b2473969912979205a1ff25"},
+    {file = "zstandard-0.24.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:1b14bc92af065d0534856bf1b30fc48753163ea673da98857ea4932be62079b1"},
+    {file = "zstandard-0.24.0-cp313-cp313-musllinux_1_1_aarch64.whl", hash = "sha256:b4f20417a4f511c656762b001ec827500cbee54d1810253c6ca2df2c0a307a5f"},
+    {file = "zstandard-0.24.0-cp313-cp313-musllinux_1_1_x86_64.whl", hash = "sha256:337572a7340e1d92fd7fb5248c8300d0e91071002d92e0b8cabe8d9ae7b58159"},
+    {file = "zstandard-0.24.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:df4be1cf6e8f0f2bbe2a3eabfff163ef592c84a40e1a20a8d7db7f27cfe08fc2"},
+    {file = "zstandard-0.24.0-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:6885ae4b33aee8835dbdb4249d3dfec09af55e705d74d9b660bfb9da51baaa8b"},
+    {file = "zstandard-0.24.0-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:663848a8bac4fdbba27feea2926049fdf7b55ec545d5b9aea096ef21e7f0b079"},
+    {file = "zstandard-0.24.0-cp313-cp313-musllinux_1_2_s390x.whl", hash = "sha256:05d27c953f2e0a3ecc8edbe91d6827736acc4c04d0479672e0400ccdb23d818c"},
+    {file = "zstandard-0.24.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:77b8b7b98893eaf47da03d262816f01f251c2aa059c063ed8a45c50eada123a5"},
+    {file = "zstandard-0.24.0-cp313-cp313-win32.whl", hash = "sha256:cf7fbb4e54136e9a03c7ed7691843c4df6d2ecc854a2541f840665f4f2bb2edd"},
+    {file = "zstandard-0.24.0-cp313-cp313-win_amd64.whl", hash = "sha256:d64899cc0f33a8f446f1e60bffc21fa88b99f0e8208750d9144ea717610a80ce"},
+    {file = "zstandard-0.24.0-cp313-cp313-win_arm64.whl", hash = "sha256:57be3abb4313e0dd625596376bbb607f40059d801d51c1a1da94d7477e63b255"},
+    {file = "zstandard-0.24.0.tar.gz", hash = "sha256:fe3198b81c00032326342d973e526803f183f97aa9e9a98e3f897ebafe21178f"},
 ]
