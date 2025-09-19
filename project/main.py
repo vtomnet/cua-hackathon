@@ -53,11 +53,12 @@ async def init_agent():
     if agent is None:
         logger.info("Creating ComputerAgent instance...")
         agent = ComputerAgent(
-            model="anthropic/claude-sonnet-4-20250514",
+            model="omni+openai/gpt-5",
             tools=[computer],
-            max_trajectory_budget=5.0,
-            use_prompt_caching=True,
-            only_n_most_recent_images=2,
+            # max_trajectory_budget=5.0,
+            # use_prompt_caching=True,
+            # only_n_most_recent_images=2,
+            # custom_loop=True,
         )
         logger.info("Agent initialized successfully")
 
@@ -167,13 +168,22 @@ async def process_audio():
         return jsonify({'error': str(e)}), 500
 
 async def main():
+    # Start computer server first
+    logger.info("Starting computer server...")
+    server = computer_server.Server()
+
+    # Start server in background
+    server_task = asyncio.create_task(server.start_async())
+
+    # Wait a moment for server to start up
+    await asyncio.sleep(1)
+
+    # Now initialize agent (which connects to the server)
     await init_agent()
 
-    # NOTE: it seems the `Computer` framework is internally hardcoded to port 8000
-    await asyncio.gather(
-        computer_server.Server().start_async(),
-        app.run_task(host='localhost', port=8001, debug=True)
-    )
+    # Start Quart app
+    logger.info("Starting Quart server...")
+    await app.run_task(host='localhost', port=8001, debug=True)
 
 if __name__ == "__main__":
     asyncio.run(main())
